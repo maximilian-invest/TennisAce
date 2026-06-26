@@ -3,8 +3,9 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { PLANS } from '@/content/plans';
 import { LEVEL_NAMES, t } from '@/domain/catalog';
-import type { Level, PeriodizationPhase } from '@/domain/models';
+import type { Domain, Level, PeriodizationPhase } from '@/domain/models';
 import { useAppStore, useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
@@ -12,22 +13,21 @@ import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
 const DAY_LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];
 const LEVEL_ORDER: Level[] = ['L1', 'L2', 'L3', 'L4'];
 
+const DOMAIN_COLOR: Record<Domain, string> = {
+  speed: DOMAIN_COLORS.speed,
+  agility: DOMAIN_COLORS.agility,
+  powerLower: DOMAIN_COLORS.power,
+  powerUpper: DOMAIN_COLORS.strength,
+  core: DOMAIN_COLORS.core,
+  aerobic: DOMAIN_COLORS.aerobic,
+  mobility: DOMAIN_COLORS.mobility,
+};
+
 const PHASES: { id: PeriodizationPhase; label: string; desc: string }[] = [
   { id: 'offseason', label: 'Off-Season', desc: 'Off-Season: Volumen hoch, Grundlagen & Kraftaufbau.' },
   { id: 'preseason', label: 'Pre-Season', desc: 'Pre-Season: Power & Schnelligkeit, Intensität rauf.' },
   { id: 'inseason', label: 'In-Season', desc: 'In-Season: Kraft mikro-dosiert, Prehab-Fokus, frisch für den Wettkampf.' },
   { id: 'transition', label: 'Transition', desc: 'Transition: aktive Erholung & Deload.' },
-];
-
-// Sample week plan (real plan generation arrives with the research data).
-const SAMPLE_PLAN = [
-  { title: 'Kraft Unterkörper + Core', meta: '45 Min · Heim', color: DOMAIN_COLORS.strength, rest: false },
-  { title: 'Agilität + Speed', meta: '30 Min · Court', color: DOMAIN_COLORS.agility, rest: false },
-  { title: 'Ruhetag', meta: 'Aktive Erholung', color: null, rest: true },
-  { title: 'Kraft Oberkörper + Power', meta: '45 Min · Heim', color: DOMAIN_COLORS.power, rest: false },
-  { title: 'Kondition · Intervalle', meta: '25 Min', color: DOMAIN_COLORS.aerobic, rest: false },
-  { title: 'Mobility + Prehab', meta: '20 Min', color: DOMAIN_COLORS.mobility, rest: false },
-  { title: 'Ruhetag', meta: 'Aktive Erholung', color: null, rest: true },
 ];
 
 export default function PlanTab() {
@@ -41,30 +41,28 @@ export default function PlanTab() {
   const activePhase = levelState?.periodizationPhase ?? 'inseason';
   const phaseDesc = PHASES.find((p) => p.id === activePhase)?.desc ?? PHASES[2].desc;
 
+  const plan = PLANS[level];
   const now = new Date();
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   const days = DAY_LETTERS.map((letter, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    return { letter, date: d.getDate(), isToday: d.toDateString() === now.toDateString(), ...SAMPLE_PLAN[i] };
+    return { letter, date: d.getDate(), isToday: d.toDateString() === now.toDateString(), session: plan.week[i] };
   });
 
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
       <View style={styles.head}>
-        <Text variant="label" color={colors.dim}>DEIN TRAININGSPLAN</Text>
+        <Text variant="label" color={colors.dim}>DEIN TRAININGSPLAN · {plan.sessionsPerWeek}×/WOCHE</Text>
         <Text style={[styles.title, { color: colors.text }]}>Diese Woche</Text>
       </View>
 
-      {/* Level banner */}
       <View style={[styles.banner, { backgroundColor: colors.heroBg }]}>
         <View style={styles.bannerTop}>
           <View>
             <Text style={[styles.bannerKicker, { color: colors.heroText }]}>AKTUELLE STUFE</Text>
-            <Text style={[styles.bannerLevel, { color: colors.heroText }]}>
-              {level} · {t(LEVEL_NAMES[level], lang)}
-            </Text>
+            <Text style={[styles.bannerLevel, { color: colors.heroText }]}>{level} · {t(LEVEL_NAMES[level], lang)}</Text>
           </View>
           <Text style={[styles.bannerPct, { color: colors.heroText }]}>{progress}%</Text>
         </View>
@@ -76,7 +74,6 @@ export default function PlanTab() {
         </Text>
       </View>
 
-      {/* Periodization */}
       <View style={styles.section}>
         <Text variant="label" color={colors.dim} style={styles.sectionLabel}>PERIODISIERUNG</Text>
         <View style={styles.phases}>
@@ -84,9 +81,7 @@ export default function PlanTab() {
             const active = p.id === activePhase;
             return (
               <View key={p.id} style={[styles.phase, { backgroundColor: active ? colors.accent : colors.surface2 }]}>
-                <Text variant="label" color={active ? colors.accentText : colors.dim} style={styles.phaseLabel}>
-                  {p.label}
-                </Text>
+                <Text variant="label" color={active ? colors.accentText : colors.dim} style={styles.phaseLabel}>{p.label}</Text>
               </View>
             );
           })}
@@ -97,33 +92,38 @@ export default function PlanTab() {
         </View>
       </View>
 
-      {/* Week calendar */}
       <View style={[styles.section, styles.calHead]}>
         <Text style={[styles.calTitle, { color: colors.text }]}>Wochenkalender</Text>
       </View>
       <View style={styles.cal}>
-        {days.map((d, i) => (
-          <View key={i} style={styles.dayRow}>
-            <View style={styles.dayCol}>
-              <Text style={[styles.dayLetter, { color: d.isToday ? colors.accentTx : colors.dim }]}>{d.letter}</Text>
-              <Text style={[styles.dayDate, { color: colors.text }]}>{d.date}</Text>
-            </View>
-            <View
-              style={[
-                styles.session,
-                { backgroundColor: colors.surface, borderColor: d.isToday ? colors.accent : colors.line, opacity: d.rest ? 0.6 : 1 },
-              ]}
-            >
-              <View style={[styles.sessionBar, { backgroundColor: d.color ?? colors.line }]} />
-              <View style={styles.flex}>
-                <Text variant="bodySemi" color={colors.text} style={styles.sessionTitle}>{d.title}</Text>
-                <Text variant="small" color={colors.dim}>{d.meta}</Text>
+        {days.map((d, i) => {
+          const rest = !d.session;
+          const color = d.session ? DOMAIN_COLOR[d.session.domain] : colors.line;
+          return (
+            <View key={i} style={styles.dayRow}>
+              <View style={styles.dayCol}>
+                <Text style={[styles.dayLetter, { color: d.isToday ? colors.accentTx : colors.dim }]}>{d.letter}</Text>
+                <Text style={[styles.dayDate, { color: colors.text }]}>{d.date}</Text>
               </View>
-              {d.isToday ? <Text style={[styles.todayBadge, { color: colors.accentTx }]}>HEUTE</Text> : null}
+              <View style={[styles.session, { backgroundColor: colors.surface, borderColor: d.isToday ? colors.accent : colors.line, opacity: rest ? 0.6 : 1 }]}>
+                <View style={[styles.sessionBar, { backgroundColor: color }]} />
+                <View style={styles.flex}>
+                  <Text variant="bodySemi" color={colors.text} style={styles.sessionTitle}>{d.session ? d.session.title : 'Ruhetag'}</Text>
+                  <Text variant="small" color={colors.dim}>{d.session ? d.session.meta : 'Aktive Erholung'}</Text>
+                </View>
+                {d.isToday ? <Text style={[styles.todayBadge, { color: colors.accentTx }]}>HEUTE</Text> : null}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
+
+      {plan.prehabNote ? (
+        <View style={[styles.prehab, { backgroundColor: colors.surface2 }]}>
+          <Icon name="info" size={16} color={colors.accentTx} strokeWidth={2} />
+          <Text variant="small" color={colors.text} style={styles.phaseDescText}>{plan.prehabNote}</Text>
+        </View>
+      ) : null}
     </Screen>
   );
 }
@@ -162,4 +162,6 @@ const styles = StyleSheet.create({
   sessionBar: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
   sessionTitle: { fontSize: 14 },
   todayBadge: { fontFamily: FONTS.bodyBold, fontSize: 9.5, letterSpacing: 0.6 },
+
+  prehab: { flexDirection: 'row', gap: 9, marginHorizontal: 24, marginTop: 18, padding: 13, borderRadius: 13, alignItems: 'flex-start' },
 });

@@ -58,7 +58,7 @@ export default function TestIntro() {
         disabled={!valid}
         onPress={() => {
           start(sex!, Number(age));
-          router.push('/test/run');
+          router.push('/test/warmup');
         }}
         style={styles.cta}
       />
