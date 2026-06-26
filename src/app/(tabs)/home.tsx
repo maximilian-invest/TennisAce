@@ -192,7 +192,7 @@ function hexTint(hex: string): string {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 32 },
+  content: { paddingBottom: 110 },
   flex: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 4 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },

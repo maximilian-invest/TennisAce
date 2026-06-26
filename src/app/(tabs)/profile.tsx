@@ -37,7 +37,7 @@ export default function ProfileTab() {
   const level = levelState?.currentLevel ?? 'L1';
 
   return (
-    <Screen scroll>
+    <Screen scroll contentStyle={{ paddingBottom: 110 }}>
       <View style={styles.head}>
         <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
           <Text variant="title" color={colors.accentText}>
