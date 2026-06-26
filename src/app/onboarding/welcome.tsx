@@ -1,64 +1,110 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/ui/Button';
-import { Screen } from '@/components/ui/Screen';
+import { AceLogo } from '@/components/AceLogo';
+import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
-import { useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
-import { RADII, SPACING } from '@/theme/tokens';
+import { FONTS } from '@/theme/tokens';
+
+const introSource = require('../../../assets/video/intro.mp4');
 
 export default function Welcome() {
   const { colors } = useTheme();
-  const de = useLang() === 'de';
+  const insets = useSafeAreaInsets();
+
+  const player = useVideoPlayer(introSource, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
 
   return (
-    <Screen>
-      <View style={styles.container}>
-        <View style={styles.hero}>
-          <View style={[styles.glow, { backgroundColor: colors.accent }]} />
-          <View style={[styles.badge, { backgroundColor: colors.heroBg }]}>
-            <Text variant="display" color={colors.accent} style={styles.logo}>
-              ACE
-            </Text>
-            <Text variant="label" color={colors.heroText} style={styles.logoSub}>
-              ATHLETE
-            </Text>
-          </View>
+    <View style={styles.root}>
+      <VideoView
+        player={player}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        nativeControls={false}
+      />
+      <LinearGradient
+        colors={['rgba(8,10,6,0.5)', 'rgba(8,10,6,0.12)', 'rgba(8,10,6,0.48)', 'rgba(8,10,6,0.94)']}
+        locations={[0, 0.3, 0.66, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View style={[styles.content, { paddingTop: insets.top + 22, paddingBottom: insets.bottom + 24 }]}>
+        <AceLogo wordmarkColor="#FFFFFF" />
+
+        <View style={styles.spacer} />
+
+        <View style={styles.dots}>
+          {[0, 1, 2, 3].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                { width: i === 0 ? 22 : 7, backgroundColor: i === 0 ? colors.accent : 'rgba(255,255,255,0.4)' },
+              ]}
+            />
+          ))}
         </View>
 
-        <View style={styles.copy}>
-          <Text variant="title">
-            {de
-              ? 'Werde der fitteste Tennisspieler, der du sein kannst.'
-              : 'Become the fittest tennis player you can be.'}
-          </Text>
-          <Text variant="body" color={colors.dim}>
-            {de ? 'Vom ersten Tag bis Profi-Niveau.' : 'From day one to pro level.'}
-          </Text>
-        </View>
+        <Text style={styles.headline}>
+          Werde der <Text style={styles.headlineBold}>fitteste</Text> Tennisspieler, der du sein kannst.
+        </Text>
+        <Text style={styles.subline}>
+          Off-Court-Athletik vom ersten Tag bis Profi-Niveau. Kraft, Schnelligkeit, Power &amp; Beweglichkeit.
+        </Text>
 
-        <Button
-          title={de ? "Los geht's" : "Let's go"}
-          onPress={() => router.push('/onboarding/profile')}
-        />
+        <Pressable
+          onPress={() => router.push('/onboarding/goals')}
+          style={({ pressed }) => [
+            styles.cta,
+            { backgroundColor: colors.accent, transform: [{ translateY: pressed ? 1 : 0 }] },
+          ]}
+        >
+          <Text style={[styles.ctaText, { color: colors.accentText }]}>Los geht&apos;s</Text>
+          <Icon name="arrowRight" size={18} color={colors.accentText} strokeWidth={2.3} />
+        </Pressable>
       </View>
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: SPACING.lg },
-  hero: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  glow: { position: 'absolute', width: 280, height: 280, borderRadius: 140, opacity: 0.16 },
-  badge: {
-    width: 200,
-    height: 200,
-    borderRadius: RADII.xl,
+  root: { flex: 1, backgroundColor: '#0E0F0A' },
+  content: { flex: 1, paddingHorizontal: 32 },
+  spacer: { flex: 1 },
+  dots: { flexDirection: 'row', gap: 7, marginBottom: 22 },
+  dot: { height: 7, borderRadius: 4 },
+  headline: {
+    fontFamily: FONTS.displayMed,
+    fontSize: 40,
+    lineHeight: 41,
+    letterSpacing: -0.8,
+    color: '#FFFFFF',
+  },
+  headlineBold: { fontFamily: FONTS.display },
+  subline: {
+    fontFamily: FONTS.body,
+    fontSize: 15,
+    lineHeight: 23,
+    color: 'rgba(255,255,255,0.84)',
+    marginTop: 16,
+    maxWidth: 300,
+  },
+  cta: {
+    marginTop: 26,
+    height: 58,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 9,
   },
-  logo: { fontSize: 64, lineHeight: 66 },
-  logoSub: { letterSpacing: 6, marginTop: 2 },
-  copy: { gap: SPACING.md, marginBottom: SPACING.xl },
+  ctaText: { fontFamily: FONTS.bodyBold, fontSize: 16 },
 });

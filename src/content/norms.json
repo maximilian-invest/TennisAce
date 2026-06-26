@@ -1,0 +1,293 @@
+{
+  "_meta": {
+    "title": "ACE Athlete – Normwerte für Scoring-Engine",
+    "version": "1.0",
+    "description": "Referenzwerte je Test, Geschlecht und Altersband. Wird vom scoringEngine genutzt (Abschnitt 3 der Functional Spec). Zwei Methoden: 'meanSd' -> Punkte = clamp(50 + 16.7*z, 0, 100), z = (wert-mean)/sd; bei direction='lowerBetter' z negieren. 'ratingBands' -> Rohwert in Band einordnen, Band -> points.",
+    "ratingToPoints": { "poor": 10, "belowAverage": 30, "average": 50, "aboveAverage": 65, "veryGood": 82, "elite": 100 },
+    "ageBands": ["10-11", "12-13", "14-15", "16-17", "18-29", "30-39", "40-49", "50plus"],
+    "sexes": ["m", "w"],
+    "confidenceLegend": {
+      "high": "tennis-spezifisch belegt (Jugend-Meta-Analyse / Studien)",
+      "medium": "allgemeine Sport-/Fitnessnorm (nicht tennis-spezifisch)",
+      "estimate": "interpoliert/abgeleitet – vor Launch idealerweise härten"
+    },
+    "hardeningTip": "Beste Quelle zum Härten der Jugendwerte: Axman et al. 2025, Systematic Review 8008 Jugend-Tennisspieler (PMC12397999) – enthält volle Perzentiltabellen für 20m-Sprint, CMJ, Spider, Hexagon, Grip, Med-Ball nach U12/U14/U16 × Geschlecht.",
+    "adultsNote": "Erwachsenenwerte sind allgemeine Bevölkerungs-/Sportnormen, nicht tennis-spezifisch. In der App als solche kennzeichnen."
+  },
+
+  "tests": {
+
+    "sprint20m": {
+      "label": { "de": "20 m Sprint", "en": "20 m sprint" },
+      "unit": "s",
+      "direction": "lowerBetter",
+      "method": "meanSd",
+      "domain": "speed",
+      "data": {
+        "m": {
+          "10-11": { "mean": 4.05, "sd": 0.30, "confidence": "high" },
+          "12-13": { "mean": 3.95, "sd": 0.28, "confidence": "high" },
+          "14-15": { "mean": 3.75, "sd": 0.25, "confidence": "high" },
+          "16-17": { "mean": 3.45, "sd": 0.20, "confidence": "high" },
+          "18-29": { "mean": 3.30, "sd": 0.25, "confidence": "estimate" },
+          "30-39": { "mean": 3.45, "sd": 0.25, "confidence": "estimate" },
+          "40-49": { "mean": 3.60, "sd": 0.28, "confidence": "estimate" },
+          "50plus": { "mean": 3.85, "sd": 0.30, "confidence": "estimate" }
+        },
+        "w": {
+          "10-11": { "mean": 4.25, "sd": 0.30, "confidence": "high" },
+          "12-13": { "mean": 4.05, "sd": 0.28, "confidence": "high" },
+          "14-15": { "mean": 3.80, "sd": 0.25, "confidence": "high" },
+          "16-17": { "mean": 3.55, "sd": 0.22, "confidence": "high" },
+          "18-29": { "mean": 3.75, "sd": 0.28, "confidence": "estimate" },
+          "30-39": { "mean": 3.90, "sd": 0.28, "confidence": "estimate" },
+          "40-49": { "mean": 4.10, "sd": 0.30, "confidence": "estimate" },
+          "50plus": { "mean": 4.35, "sd": 0.32, "confidence": "estimate" }
+        }
+      },
+      "source": "Axman 2025 (PMC12397999) U8=4.31m/4.42w, U18=3.08m/3.38w; Barbaros 2023 Croatian U12/14/16 males 4.12/3.89/3.56. Zwischen-/Erwachsenenbänder interpoliert bzw. abgeleitet."
+    },
+
+    "agility505": {
+      "label": { "de": "5-0-5 Agilität", "en": "5-0-5 agility" },
+      "unit": "s",
+      "direction": "lowerBetter",
+      "method": "meanSd",
+      "domain": "agility",
+      "data": {
+        "m": {
+          "10-11": { "mean": 2.75, "sd": 0.20, "confidence": "estimate" },
+          "12-13": { "mean": 2.65, "sd": 0.18, "confidence": "estimate" },
+          "14-15": { "mean": 2.55, "sd": 0.16, "confidence": "estimate" },
+          "16-17": { "mean": 2.45, "sd": 0.15, "confidence": "estimate" },
+          "18-29": { "mean": 2.40, "sd": 0.18, "confidence": "medium" },
+          "30-39": { "mean": 2.50, "sd": 0.18, "confidence": "estimate" },
+          "40-49": { "mean": 2.62, "sd": 0.20, "confidence": "estimate" },
+          "50plus": { "mean": 2.80, "sd": 0.22, "confidence": "estimate" }
+        },
+        "w": {
+          "10-11": { "mean": 2.90, "sd": 0.20, "confidence": "estimate" },
+          "12-13": { "mean": 2.80, "sd": 0.18, "confidence": "estimate" },
+          "14-15": { "mean": 2.70, "sd": 0.17, "confidence": "estimate" },
+          "16-17": { "mean": 2.62, "sd": 0.16, "confidence": "estimate" },
+          "18-29": { "mean": 2.62, "sd": 0.18, "confidence": "medium" },
+          "30-39": { "mean": 2.72, "sd": 0.18, "confidence": "estimate" },
+          "40-49": { "mean": 2.85, "sd": 0.20, "confidence": "estimate" },
+          "50plus": { "mean": 3.02, "sd": 0.22, "confidence": "estimate" }
+        }
+      },
+      "source": "5-0-5 (eine 180°-Wende, letzte 5m gestoppt). Tennis-spezifische 5-0-5-Normwerte sind dünn; Werte abgeleitet aus allgemeiner S&C-Literatur. Alternativ Spider Run verwenden (siehe spiderRun)."
+    },
+
+    "spiderRun": {
+      "label": { "de": "Spider Run", "en": "Spider run" },
+      "unit": "s",
+      "direction": "lowerBetter",
+      "method": "ratingBands",
+      "domain": "agility",
+      "comment": "Court-Variante statt 5-0-5. Tennis-spezifischste Agilität. Gleiche Bänder m/w, leichte w-Anpassung über offset.",
+      "bands": {
+        "m": {
+          "18-29": { "elite": [0, 16.0], "veryGood": [16.0, 17.5], "aboveAverage": [17.5, 19.0], "average": [19.0, 20.5], "belowAverage": [20.5, 22.5], "poor": [22.5, 99] }
+        },
+        "w": {
+          "18-29": { "elite": [0, 17.0], "veryGood": [17.0, 18.5], "aboveAverage": [18.5, 20.0], "average": [20.0, 21.5], "belowAverage": [21.5, 23.5], "poor": [23.5, 99] }
+        },
+        "youth": {
+          "comment": "Zielzeiten (jede Altersklasse, geschlechtsneutral als Orientierung): 8-10J 22-23s, 10-12J 20-22s, 12-15J ~20s. Elite-Junioren 15-17s.",
+          "10-11": { "elite": [0, 19.5], "veryGood": [19.5, 21.0], "average": [21.0, 23.0], "poor": [23.0, 99] },
+          "12-13": { "elite": [0, 18.5], "veryGood": [18.5, 20.0], "average": [20.0, 22.0], "poor": [22.0, 99] },
+          "14-15": { "elite": [0, 17.0], "veryGood": [17.0, 18.5], "average": [18.5, 20.5], "poor": [20.5, 99] },
+          "16-17": { "elite": [0, 16.5], "veryGood": [16.5, 18.0], "average": [18.0, 20.0], "poor": [20.0, 99] }
+        }
+      },
+      "confidence": "medium",
+      "source": "USTA Spider Drill; Junioren-Zielzeiten aus Coaching-Benchmarks; Junior-Forschung Mittel ~15-17s."
+    },
+
+    "cmj": {
+      "label": { "de": "Counter-Movement Jump", "en": "Countermovement jump" },
+      "unit": "cm",
+      "direction": "higherBetter",
+      "method": "mixed",
+      "domain": "powerLower",
+      "comment": "Jugend per meanSd (tennis-spezifisch), Erwachsene per ratingBands (allgemein). Werte = CMJ ohne Armschwung.",
+      "data_meanSd": {
+        "m": {
+          "10-11": { "mean": 30.0, "sd": 4.0, "confidence": "high" },
+          "12-13": { "mean": 32.6, "sd": 4.1, "confidence": "high" },
+          "14-15": { "mean": 36.6, "sd": 4.8, "confidence": "high" },
+          "16-17": { "mean": 43.8, "sd": 4.5, "confidence": "high" }
+        },
+        "w": {
+          "10-11": { "mean": 27.0, "sd": 4.0, "confidence": "estimate" },
+          "12-13": { "mean": 29.5, "sd": 4.2, "confidence": "estimate" },
+          "14-15": { "mean": 31.5, "sd": 4.5, "confidence": "estimate" },
+          "16-17": { "mean": 33.5, "sd": 4.5, "confidence": "estimate" }
+        }
+      },
+      "bands": {
+        "m": {
+          "18-29": { "elite": [70, 200], "veryGood": [61, 70], "aboveAverage": [51, 61], "average": [41, 51], "belowAverage": [31, 41], "poor": [0, 31] },
+          "30-39": { "elite": [62, 200], "veryGood": [54, 62], "aboveAverage": [45, 54], "average": [36, 45], "belowAverage": [27, 36], "poor": [0, 27] },
+          "40-49": { "elite": [54, 200], "veryGood": [46, 54], "aboveAverage": [38, 46], "average": [30, 38], "belowAverage": [22, 30], "poor": [0, 22] },
+          "50plus": { "elite": [44, 200], "veryGood": [37, 44], "aboveAverage": [30, 37], "average": [23, 30], "belowAverage": [16, 23], "poor": [0, 16] }
+        },
+        "w": {
+          "18-29": { "elite": [60, 200], "veryGood": [51, 60], "aboveAverage": [41, 51], "average": [31, 41], "belowAverage": [21, 31], "poor": [0, 21] },
+          "30-39": { "elite": [52, 200], "veryGood": [44, 52], "aboveAverage": [36, 44], "average": [27, 36], "belowAverage": [18, 27], "poor": [0, 18] },
+          "40-49": { "elite": [45, 200], "veryGood": [38, 45], "aboveAverage": [30, 38], "average": [22, 30], "belowAverage": [14, 22], "poor": [0, 14] },
+          "50plus": { "elite": [37, 200], "veryGood": [30, 37], "aboveAverage": [24, 30], "average": [17, 24], "belowAverage": [10, 17], "poor": [0, 10] }
+        }
+      },
+      "source": "Jugend m: Barbaros 2023 (U12 32.6 / U14 36.6 / U16 43.8, ohne Arme). Erwachsene: Topend Sports Vertical-Jump-Normen 20-30J, ältere Bänder per ~12-15% Dekaden-Abnahme abgeleitet."
+    },
+
+    "broadJump": {
+      "label": { "de": "Standweitsprung", "en": "Standing broad jump" },
+      "unit": "cm",
+      "direction": "higherBetter",
+      "method": "meanSd",
+      "domain": "powerLower",
+      "data": {
+        "m": {
+          "10-11": { "mean": 150, "sd": 20, "confidence": "high" },
+          "12-13": { "mean": 165, "sd": 22, "confidence": "high" },
+          "14-15": { "mean": 190, "sd": 24, "confidence": "high" },
+          "16-17": { "mean": 207, "sd": 24, "confidence": "high" },
+          "18-29": { "mean": 215, "sd": 25, "confidence": "medium" },
+          "30-39": { "mean": 205, "sd": 25, "confidence": "estimate" },
+          "40-49": { "mean": 190, "sd": 26, "confidence": "estimate" },
+          "50plus": { "mean": 170, "sd": 28, "confidence": "estimate" }
+        },
+        "w": {
+          "10-11": { "mean": 142, "sd": 18, "confidence": "high" },
+          "12-13": { "mean": 150, "sd": 20, "confidence": "high" },
+          "14-15": { "mean": 156, "sd": 20, "confidence": "high" },
+          "16-17": { "mean": 158, "sd": 20, "confidence": "high" },
+          "18-29": { "mean": 160, "sd": 22, "confidence": "medium" },
+          "30-39": { "mean": 152, "sd": 22, "confidence": "estimate" },
+          "40-49": { "mean": 142, "sd": 23, "confidence": "estimate" },
+          "50plus": { "mean": 128, "sd": 24, "confidence": "estimate" }
+        }
+      },
+      "source": "Jugend: FitBack/Tomkinson 2023 50.-Perzentil (m 12J 160 / 16J 203; w 12J 148 / 16J 157). Erwachsene: untrainiert m 180-215 / w 120-150 cm (FitnessNorms)."
+    },
+
+    "medBallThrow": {
+      "label": { "de": "Medizinball-Überkopfwurf (3 kg)", "en": "Overhead medicine-ball throw (3 kg)" },
+      "unit": "m",
+      "direction": "higherBetter",
+      "method": "ratingBands",
+      "domain": "powerUpper",
+      "comment": "3 kg Ball. Bei kein Ball -> pushUps verwenden (eigener Test).",
+      "bands": {
+        "m": {
+          "18-29": { "elite": [12.5, 99], "veryGood": [11.0, 12.5], "aboveAverage": [9.0, 11.0], "average": [7.0, 9.0], "belowAverage": [5.0, 7.0], "poor": [0, 5.0] },
+          "30-49": { "elite": [11.0, 99], "veryGood": [9.5, 11.0], "aboveAverage": [8.0, 9.5], "average": [6.0, 8.0], "belowAverage": [4.0, 6.0], "poor": [0, 4.0] },
+          "youth_14-17": { "elite": [10.0, 99], "veryGood": [8.5, 10.0], "average": [6.5, 8.5], "poor": [0, 6.5] }
+        },
+        "w": {
+          "18-29": { "elite": [9.5, 99], "veryGood": [8.0, 9.5], "aboveAverage": [6.5, 8.0], "average": [5.0, 6.5], "belowAverage": [3.5, 5.0], "poor": [0, 3.5] },
+          "30-49": { "elite": [8.5, 99], "veryGood": [7.0, 8.5], "aboveAverage": [5.5, 7.0], "average": [4.0, 5.5], "belowAverage": [3.0, 4.0], "poor": [0, 3.0] },
+          "youth_14-17": { "elite": [7.5, 99], "veryGood": [6.0, 7.5], "average": [4.5, 6.0], "poor": [0, 4.5] }
+        }
+      },
+      "confidence": "medium",
+      "source": "Topend Sports Overhead-Med-Ball-Throw (athletische Erwachsene, 3 kg)."
+    },
+
+    "pushUps": {
+      "label": { "de": "Liegestütze (max)", "en": "Push-ups (max)" },
+      "unit": "reps",
+      "direction": "higherBetter",
+      "method": "ratingBands",
+      "domain": "powerUpper",
+      "comment": "Alternativtest zu medBallThrow, wenn kein Ball. m=Zehen, w=oft modifiziert (Knie) – Konvention in App fixieren!",
+      "bands": {
+        "m": {
+          "18-29": { "elite": [36, 999], "veryGood": [29, 35], "average": [22, 28], "belowAverage": [17, 21], "poor": [0, 16] },
+          "30-39": { "elite": [30, 999], "veryGood": [24, 29], "average": [17, 23], "belowAverage": [12, 16], "poor": [0, 11] },
+          "40-49": { "elite": [25, 999], "veryGood": [18, 24], "average": [13, 17], "belowAverage": [10, 12], "poor": [0, 9] },
+          "50plus": { "elite": [21, 999], "veryGood": [16, 20], "average": [10, 15], "belowAverage": [7, 9], "poor": [0, 6] }
+        },
+        "w": {
+          "18-29": { "elite": [30, 999], "veryGood": [21, 29], "average": [15, 20], "belowAverage": [10, 14], "poor": [0, 9] },
+          "30-39": { "elite": [27, 999], "veryGood": [20, 26], "average": [13, 19], "belowAverage": [8, 12], "poor": [0, 7] },
+          "40-49": { "elite": [24, 999], "veryGood": [15, 23], "average": [11, 14], "belowAverage": [5, 10], "poor": [0, 4] },
+          "50plus": { "elite": [21, 999], "veryGood": [13, 20], "average": [7, 12], "belowAverage": [2, 6], "poor": [0, 1] }
+        }
+      },
+      "confidence": "medium",
+      "source": "ACSM Push-up Norms (1-Satz max)."
+    },
+
+    "plank": {
+      "label": { "de": "Unterarmstütz (Plank)", "en": "Forearm plank" },
+      "unit": "s",
+      "direction": "higherBetter",
+      "method": "ratingBands",
+      "domain": "core",
+      "comment": "Geschlechts-/altersrobust; gleiche Bänder, w leicht reduziert. Über ~120s testet eher Schmerztoleranz (McGill) – Deckel bei 100 Punkten ab 120s.",
+      "bands": {
+        "m": {
+          "all": { "elite": [120, 9999], "veryGood": [90, 120], "aboveAverage": [60, 90], "average": [45, 60], "belowAverage": [30, 45], "poor": [0, 30] }
+        },
+        "w": {
+          "all": { "elite": [110, 9999], "veryGood": [80, 110], "aboveAverage": [55, 80], "average": [40, 55], "belowAverage": [25, 40], "poor": [0, 25] }
+        }
+      },
+      "confidence": "medium",
+      "source": "Marathon Handbook / Fitness Drum Plank-Normen; College-Athleten Median ~110s m / 95s w."
+    },
+
+    "sitReach": {
+      "label": { "de": "Sit-and-Reach", "en": "Sit-and-reach" },
+      "unit": "cm",
+      "direction": "higherBetter",
+      "method": "ratingBands",
+      "domain": "mobility",
+      "comment": "Nullpunkt-Konvention (Fußsohlen = 0 cm) in App fixieren, sonst nicht vergleichbar.",
+      "bands": {
+        "m": {
+          "18-29": { "elite": [40, 99], "veryGood": [34, 40], "aboveAverage": [28, 34], "average": [20, 28], "belowAverage": [12, 20], "poor": [-30, 12] },
+          "30-49": { "elite": [36, 99], "veryGood": [30, 36], "aboveAverage": [24, 30], "average": [16, 24], "belowAverage": [8, 16], "poor": [-30, 8] },
+          "50plus": { "elite": [32, 99], "veryGood": [26, 32], "aboveAverage": [20, 26], "average": [12, 20], "belowAverage": [4, 12], "poor": [-30, 4] }
+        },
+        "w": {
+          "18-29": { "elite": [42, 99], "veryGood": [37, 42], "aboveAverage": [31, 37], "average": [24, 31], "belowAverage": [16, 24], "poor": [-30, 16] },
+          "30-49": { "elite": [39, 99], "veryGood": [33, 39], "aboveAverage": [27, 33], "average": [20, 27], "belowAverage": [12, 20], "poor": [-30, 12] },
+          "50plus": { "elite": [35, 99], "veryGood": [29, 35], "aboveAverage": [23, 29], "average": [16, 23], "belowAverage": [8, 16], "poor": [-30, 8] }
+        }
+      },
+      "confidence": "medium",
+      "source": "FitnessNorms / Meloq Sit-and-Reach (Frauen ~3 cm flexibler)."
+    },
+
+    "beepTest": {
+      "label": { "de": "Beep-Test (20 m MSFT)", "en": "Beep test (20 m MSFT)" },
+      "unit": "totalShuttles",
+      "direction": "higherBetter",
+      "method": "ratingBands",
+      "domain": "aerobic",
+      "comment": "Eingabe als Gesamt-Shuttles (Level+Shuttle -> Gesamtzahl umrechnen). VO2max-Schätzung optional: 0.38*shuttles + 25.98.",
+      "bands": {
+        "m": {
+          "18-29": { "elite": [120, 999], "veryGood": [95, 120], "aboveAverage": [75, 95], "average": [55, 75], "belowAverage": [40, 55], "poor": [0, 40] },
+          "30-39": { "elite": [105, 999], "veryGood": [82, 105], "aboveAverage": [63, 82], "average": [45, 63], "belowAverage": [32, 45], "poor": [0, 32] },
+          "40-49": { "elite": [88, 999], "veryGood": [66, 88], "aboveAverage": [50, 66], "average": [35, 50], "belowAverage": [24, 35], "poor": [0, 24] },
+          "50plus": { "elite": [70, 999], "veryGood": [52, 70], "aboveAverage": [38, 52], "average": [26, 38], "belowAverage": [16, 26], "poor": [0, 16] }
+        },
+        "w": {
+          "18-29": { "elite": [95, 999], "veryGood": [72, 95], "aboveAverage": [54, 72], "average": [38, 54], "belowAverage": [26, 38], "poor": [0, 26] },
+          "30-39": { "elite": [82, 999], "veryGood": [60, 82], "aboveAverage": [44, 60], "average": [30, 44], "belowAverage": [20, 30], "poor": [0, 20] },
+          "40-49": { "elite": [68, 999], "veryGood": [48, 68], "aboveAverage": [34, 48], "average": [22, 34], "belowAverage": [14, 22], "poor": [0, 14] },
+          "50plus": { "elite": [54, 999], "veryGood": [38, 54], "aboveAverage": [26, 38], "average": [16, 26], "belowAverage": [10, 16], "poor": [0, 10] }
+        }
+      },
+      "confidence": "medium",
+      "source": "BrianMac Beep-Test-Normen (Bizley 2010). Level/Shuttle -> Gesamt-Shuttles via Standard-MSFT-Tabelle umrechnen. Yo-Yo IR1 als tennis-nähere Alternative möglich."
+    }
+
+  }
+}

@@ -1,73 +1,80 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { StepScaffold } from '@/components/onboarding/StepScaffold';
-import { Card } from '@/components/ui/Card';
+import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import type { HealthCheck } from '@/domain/models';
-import { useAppStore, useLang } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
-import { SPACING } from '@/theme/tokens';
 
-const FIELDS: { id: keyof HealthCheck; de: string; en: string }[] = [
-  { id: 'shoulder', de: 'Schulter-Beschwerden', en: 'Shoulder issues' },
-  { id: 'knee', de: 'Knie-Beschwerden', en: 'Knee issues' },
-  { id: 'back', de: 'Rücken-Beschwerden', en: 'Back issues' },
-  { id: 'other', de: 'Sonstige Vorerkrankung', en: 'Other condition' },
+const FIELDS: { id: keyof HealthCheck; label: string }[] = [
+  { id: 'shoulder', label: 'Schulter' },
+  { id: 'knee', label: 'Knie' },
+  { id: 'back', label: 'Rücken' },
+  { id: 'other', label: 'Sonstige Vorerkrankung' },
 ];
 
 export default function Health() {
   const { colors } = useTheme();
-  const lang = useLang();
-  const de = lang === 'de';
   const updateDraft = useAppStore((s) => s.updateDraft);
   const [health, setHealth] = useState<HealthCheck>({ shoulder: false, knee: false, back: false, other: false });
 
-  const onNext = () => {
-    updateDraft({ health });
-    router.push('/onboarding/result');
-  };
+  const toggle = (k: keyof HealthCheck) => setHealth((h) => ({ ...h, [k]: !h[k] }));
 
   return (
     <StepScaffold
-      step={4}
-      title={de ? 'Gesundheits-Check' : 'Health check'}
-      subtitle={de ? 'Wir passen Übungen bei Bedarf an.' : 'We adapt exercises if needed.'}
-      ctaTitle={de ? 'Zum Ergebnis' : 'See result'}
-      onNext={onNext}
+      step={3}
+      title="Kurzer Gesundheits-Check"
+      subtitle="Damit wir Belastung und Prehab anpassen."
+      ctaTitle="Weiter zum Leistungstest"
+      ctaIcon
+      onNext={() => {
+        updateDraft({ health });
+        router.push('/onboarding/result');
+      }}
     >
-      <Card padded={false}>
-        {FIELDS.map((f, i) => (
-          <View
-            key={f.id}
-            style={[styles.row, i < FIELDS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.line }]}
-          >
-            <Text variant="body">{de ? f.de : f.en}</Text>
-            <Switch
-              value={health[f.id]}
-              onValueChange={(v) => setHealth((h) => ({ ...h, [f.id]: v }))}
-              trackColor={{ true: colors.accent, false: colors.line }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        ))}
-      </Card>
-      <Text variant="small" color={colors.dim}>
-        {de
-          ? 'Kein medizinischer Rat. Bei Beschwerden bitte ärztlich abklären.'
-          : 'Not medical advice. Please consult a doctor if in doubt.'}
-      </Text>
+      <View style={styles.list}>
+        {FIELDS.map((f) => {
+          const on = health[f.id];
+          return (
+            <View key={f.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+              <Text variant="bodySemi" color={colors.text} style={styles.rowLabel}>
+                Beschwerden: {f.label}
+              </Text>
+              <Pressable onPress={() => toggle(f.id)} style={[styles.track, { backgroundColor: on ? colors.accent : colors.line }]}>
+                <View style={[styles.knob, { alignSelf: on ? 'flex-end' : 'flex-start' }]} />
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={[styles.info, { backgroundColor: colors.surface2 }]}>
+        <Icon name="info" size={17} color={colors.dim} strokeWidth={1.8} />
+        <Text style={[styles.infoText, { color: colors.dim }]}>
+          Kein medizinischer Rat. Bei anhaltenden Beschwerden ärztlich abklären lassen.
+        </Text>
+      </View>
     </StepScaffold>
   );
 }
 
 const styles = StyleSheet.create({
+  list: { gap: 10 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    borderWidth: 1,
+    borderRadius: 15,
   },
+  rowLabel: { fontSize: 14 },
+  track: { width: 46, height: 28, borderRadius: 14, padding: 3, justifyContent: 'center' },
+  knob: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF' },
+  info: { flexDirection: 'row', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, alignItems: 'flex-start' },
+  infoText: { flex: 1, fontSize: 11.5, lineHeight: 17, fontFamily: 'PlusJakartaSans_500Medium' },
 });
