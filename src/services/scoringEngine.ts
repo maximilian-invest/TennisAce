@@ -129,11 +129,24 @@ export interface ScoreResult {
   weakestDomain: Domain;
 }
 
-function levelFor(total: number): Level {
+const LEVEL_BANDS: Record<Level, [number, number]> = {
+  L1: [0, 40],
+  L2: [40, 60],
+  L3: [60, 80],
+  L4: [80, 100],
+};
+
+export function levelFor(total: number): Level {
   if (total < 40) return 'L1';
   if (total < 60) return 'L2';
   if (total < 80) return 'L3';
   return 'L4';
+}
+
+/** Progress (0–100 %) of a total score within a given level's band. */
+export function levelProgressWithin(total: number, level: Level): number {
+  const [lo, hi] = LEVEL_BANDS[level];
+  return Math.round(clamp(((total - lo) / (hi - lo)) * 100, 0, 100));
 }
 
 /** Raw values keyed by TestStation.key. */

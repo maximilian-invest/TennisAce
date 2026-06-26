@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { useAppStore } from '@/store/appStore';
 import type { ThemeColors } from '@/theme/themes';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS } from '@/theme/tokens';
@@ -37,7 +38,13 @@ function Smiley({ mood, color }: { mood: Felt; color: string }) {
 
 export default function SessionComplete() {
   const { colors } = useTheme();
+  const logWorkout = useAppStore((s) => s.logWorkout);
   const [felt, setFelt] = useState<Felt>('justRight');
+
+  const finish = () => {
+    logWorkout({ date: new Date().toISOString(), felt });
+    router.replace('/home');
+  };
 
   return (
     <Screen scroll contentStyle={styles.content}>
@@ -89,7 +96,7 @@ export default function SessionComplete() {
         Wir passen die nächste Einheit automatisch an.
       </Text>
 
-      <Button title="Fertig" onPress={() => router.replace('/home')} style={styles.cta} />
+      <Button title="Fertig" onPress={finish} style={styles.cta} />
     </Screen>
   );
 }

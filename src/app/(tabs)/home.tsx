@@ -22,6 +22,8 @@ export default function Home() {
   const lang = useLang();
   const profile = useAppStore((s) => s.profile);
   const levelState = useAppStore((s) => s.levelState);
+  const workoutLog = useAppStore((s) => s.workoutLog);
+  const testHistory = useAppStore((s) => s.testHistory);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const de = lang === 'de';
 
@@ -46,6 +48,25 @@ export default function Home() {
   const level = levelState?.currentLevel ?? 'L1';
   const nextLevel = LEVEL_ORDER[Math.min(3, LEVEL_ORDER.indexOf(level) + 1)];
   const progress = levelState?.progressToNext ?? 0;
+
+  // Real week-streak from the workout log.
+  const mondayOf = (d: Date) => {
+    const m = new Date(d);
+    m.setHours(0, 0, 0, 0);
+    m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return m.getTime();
+  };
+  const weekSet = new Set(workoutLog.map((e) => mondayOf(new Date(e.date))));
+  let weekStreak = 0;
+  for (let cursor = mondayOf(now); weekSet.has(cursor); cursor -= 7 * 86400000) weekStreak += 1;
+
+  const lastTest = testHistory[testHistory.length - 1];
+  const daysSinceTest = lastTest ? Math.floor((now.getTime() - new Date(lastTest.date).getTime()) / 86400000) : null;
+  const monthlySub = daysSinceTest == null
+    ? (de ? 'genaue Einstufung' : 'exact rating')
+    : daysSinceTest >= 30
+      ? (de ? 'jetzt fällig · genaue Einstufung' : 'due now · exact rating')
+      : (de ? `in ${30 - daysSinceTest} Tagen · genaue Einstufung` : `in ${30 - daysSinceTest} days · exact rating`);
 
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
@@ -125,7 +146,7 @@ export default function Home() {
       <View style={styles.stats}>
         <Stat icon="steps" tint={DOMAIN_COLORS.speed} value="1.840" label={de ? 'Schritte' : 'Steps'} />
         <Stat icon="flame" tint={colors.secondary} value="328" label="kcal" filled />
-        <Stat icon="bolt" tint={colors.accentTx} value="12" label="Streak" filled />
+        <Stat icon="bolt" tint={colors.accentTx} value={String(weekStreak)} label="Streak" filled />
       </View>
 
       {/* Level card */}
@@ -156,7 +177,7 @@ export default function Home() {
         </View>
         <View style={styles.flex}>
           <Text variant="bodySemi" color={colors.text}>{de ? 'Monatstest' : 'Monthly test'}</Text>
-          <Text variant="small" color={colors.dim}>{de ? 'in 30 Tagen · genaue Einstufung' : 'in 30 days · exact rating'}</Text>
+          <Text variant="small" color={colors.dim}>{monthlySub}</Text>
         </View>
         <Icon name="chevronRight" size={20} color={colors.dim} />
       </Pressable>

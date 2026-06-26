@@ -7,6 +7,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import type { Sex } from '@/domain/models';
+import { useAppStore } from '@/store/appStore';
 import { useTestSession } from '@/store/testSession';
 import { useTheme } from '@/theme/ThemeContext';
 import { RADII, SPACING } from '@/theme/tokens';
@@ -20,8 +21,12 @@ const SEXES: { id: Sex; label: string }[] = [
 export default function TestIntro() {
   const { colors } = useTheme();
   const start = useTestSession((s) => s.start);
-  const [sex, setSex] = useState<Sex | null>(null);
-  const [age, setAge] = useState('');
+  const profile = useAppStore((s) => s.profile);
+  const hasOnboarded = useAppStore((s) => s.hasOnboarded);
+  const monthly = hasOnboarded;
+
+  const [sex, setSex] = useState<Sex | null>(monthly ? profile?.sex ?? null : null);
+  const [age, setAge] = useState(monthly && profile?.age ? String(profile.age) : '');
   const valid = !!sex && Number(age) > 0;
 
   return (
@@ -31,9 +36,13 @@ export default function TestIntro() {
         <Text variant="label" color={colors.heroText} style={styles.heroLabel}>MINUTEN</Text>
       </View>
 
-      <Text variant="title" style={styles.h}>Deine erste Leistungsfeststellung</Text>
+      <Text variant="title" style={styles.h}>
+        {monthly ? 'Dein Monatstest' : 'Deine erste Leistungsfeststellung'}
+      </Text>
       <Text variant="body" color={colors.dim} style={styles.p}>
-        8 kurze Stationen zeigen exakt, wo du stehst – danach startet dein Plan genau richtig. Du brauchst etwas Platz und ca. 30 Minuten.
+        {monthly
+          ? 'Dieselben 8 Stationen wie beim Eingangstest – gleiche Protokolle für einen fairen Vergleich. Danach siehst du deinen Fortschritt und ob eine neue Stufe ansteht.'
+          : '8 kurze Stationen zeigen exakt, wo du stehst – danach startet dein Plan genau richtig. Du brauchst etwas Platz und ca. 30 Minuten.'}
       </Text>
 
       <Text variant="label" color={colors.dim} style={styles.lbl}>GESCHLECHT · FÜR NORMWERTE</Text>
@@ -54,20 +63,24 @@ export default function TestIntro() {
       />
 
       <Button
-        title="Test starten"
+        title={monthly ? 'Monatstest starten' : 'Test starten'}
         disabled={!valid}
         onPress={() => {
-          start(sex!, Number(age));
+          start(sex!, Number(age), monthly ? 'monthly' : 'initial');
           router.push('/test/warmup');
         }}
         style={styles.cta}
       />
-      <Button
-        title="Später – erstmal vorläufig einstufen"
-        variant="ghost"
-        onPress={() => router.replace('/onboarding/result')}
-        style={styles.later}
-      />
+      {monthly ? (
+        <Button title="Abbrechen" variant="ghost" onPress={() => router.back()} style={styles.later} />
+      ) : (
+        <Button
+          title="Später – erstmal vorläufig einstufen"
+          variant="ghost"
+          onPress={() => router.replace('/onboarding/result')}
+          style={styles.later}
+        />
+      )}
     </Screen>
   );
 }

@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { LEVEL_NAMES, t } from '@/domain/catalog';
@@ -11,7 +12,7 @@ import type { Lang } from '@/domain/models';
 import { useAppStore, useLang } from '@/store/appStore';
 import type { ThemePreference } from '@/theme/themes';
 import { useTheme } from '@/theme/ThemeContext';
-import { SPACING } from '@/theme/tokens';
+import { RADII, SPACING } from '@/theme/tokens';
 
 const THEME_OPTIONS: { id: ThemePreference; label: string }[] = [
   { id: 'system', label: 'System' },
@@ -64,6 +65,17 @@ export default function ProfileTab() {
         ))}
       </Setting>
 
+      <Pressable onPress={() => router.push('/shop')} style={[styles.navRow, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+        <View style={[styles.navIcon, { backgroundColor: `${colors.accent}26` }]}>
+          <Icon name="plus" size={20} color={colors.accentTx} strokeWidth={2.2} />
+        </View>
+        <View style={styles.flex}>
+          <Text variant="bodySemi" color={colors.text}>{de ? 'Equipment & Empfehlungen' : 'Equipment & recommendations'}</Text>
+          <Text variant="small" color={colors.dim}>{de ? 'Kaufguide nach Priorität' : 'Buying guide by priority'}</Text>
+        </View>
+        <Icon name="chevronRight" size={20} color={colors.dim} />
+      </Pressable>
+
       <Button
         title={de ? 'Onboarding zurücksetzen' : 'Reset onboarding'}
         variant="ghost"
@@ -95,5 +107,7 @@ const styles = StyleSheet.create({
   avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   setting: { gap: SPACING.sm, marginTop: SPACING.xl },
   optionRow: { flexDirection: 'row', gap: SPACING.sm, flexWrap: 'wrap' },
+  navRow: { flexDirection: 'row', alignItems: 'center', gap: 13, marginTop: SPACING.xl, padding: 15, borderRadius: RADII.md, borderWidth: 1 },
+  navIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   reset: { marginTop: SPACING.xxl },
 });

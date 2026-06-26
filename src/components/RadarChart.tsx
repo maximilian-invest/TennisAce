@@ -15,7 +15,17 @@ const SHORT: Record<Domain, string> = {
   mobility: 'MOB',
 };
 
-export function RadarChart({ scores, size = 280 }: { scores: DomainScores; size?: number; lang?: Lang }) {
+export function RadarChart({
+  scores,
+  compare,
+  size = 280,
+}: {
+  scores: DomainScores;
+  /** Optional baseline drawn faintly behind the main polygon (e.g. first test). */
+  compare?: DomainScores;
+  size?: number;
+  lang?: Lang;
+}) {
   const { colors } = useTheme();
   const cx = size / 2;
   const cy = size / 2;
@@ -25,8 +35,8 @@ export function RadarChart({ scores, size = 280 }: { scores: DomainScores; size?
   const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
   const point = (i: number, r: number): [number, number] => [cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))];
   const ring = (f: number) => DOMAINS.map((_, i) => point(i, R * f).join(',')).join(' ');
-
-  const dataPolygon = DOMAINS.map((d, i) => point(i, (R * Math.max(0, Math.min(100, scores[d]))) / 100).join(',')).join(' ');
+  const polygon = (s: DomainScores) =>
+    DOMAINS.map((d, i) => point(i, (R * Math.max(0, Math.min(100, s[d]))) / 100).join(',')).join(' ');
 
   return (
     <Svg width={size} height={size}>
@@ -37,7 +47,12 @@ export function RadarChart({ scores, size = 280 }: { scores: DomainScores; size?
         const [x, y] = point(i, R);
         return <Line key={`axis-${d}`} x1={cx} y1={cy} x2={x} y2={y} stroke={colors.line} strokeWidth={1} />;
       })}
-      <Polygon points={dataPolygon} fill={`${colors.accent}45`} stroke={colors.accent} strokeWidth={2.5} />
+
+      {compare ? (
+        <Polygon points={polygon(compare)} fill="none" stroke={colors.dim} strokeWidth={1.5} strokeDasharray="4 4" opacity={0.7} />
+      ) : null}
+
+      <Polygon points={polygon(scores)} fill={`${colors.accent}45`} stroke={colors.accent} strokeWidth={2.5} />
       {DOMAINS.map((d, i) => {
         const [px, py] = point(i, (R * Math.max(0, Math.min(100, scores[d]))) / 100);
         return <Circle key={`pt-${d}`} cx={px} cy={py} r={3.5} fill={colors.accent} />;
