@@ -5,6 +5,9 @@ export interface PlanSession {
   title: string;
   domain: Domain; // primary domain → card colour
   meta: string;
+  /** Generated plans carry the concrete exercise ids & an intensity note. */
+  exercises?: string[];
+  intensity?: string;
 }
 
 export interface WeekPlan {

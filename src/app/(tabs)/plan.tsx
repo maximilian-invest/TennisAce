@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/Text';
 import { PLANS } from '@/content/plans';
 import { LEVEL_NAMES, t } from '@/domain/catalog';
 import type { Domain, Level, PeriodizationPhase } from '@/domain/models';
+import { generateWeekPlan } from '@/services/personalization/planGenerator';
 import { useAppStore, useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
@@ -34,6 +35,9 @@ export default function PlanTab() {
   const { colors } = useTheme();
   const lang = useLang();
   const levelState = useAppStore((s) => s.levelState);
+  const profile = useAppStore((s) => s.profile);
+  const health = useAppStore((s) => s.health);
+  const testHistory = useAppStore((s) => s.testHistory);
 
   const level = levelState?.currentLevel ?? 'L1';
   const nextLevel = LEVEL_ORDER[Math.min(3, LEVEL_ORDER.indexOf(level) + 1)];
@@ -41,7 +45,19 @@ export default function PlanTab() {
   const activePhase = levelState?.periodizationPhase ?? 'inseason';
   const phaseDesc = PHASES.find((p) => p.id === activePhase)?.desc ?? PHASES[2].desc;
 
-  const plan = PLANS[level];
+  // Personalized plan from the engine; static table only as a fallback.
+  const plan = profile
+    ? generateWeekPlan({
+        age: profile.age,
+        level,
+        goals: profile.goals,
+        health,
+        tennisDays: profile.tennisDays,
+        trainingDaysPerWeek: profile.trainingDaysPerWeek,
+        weakest: testHistory[testHistory.length - 1]?.weakestDomain,
+        lang,
+      })
+    : PLANS[level];
   const now = new Date();
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));

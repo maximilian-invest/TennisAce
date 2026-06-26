@@ -46,6 +46,10 @@ export interface UserProfile {
   heightCm?: number;
   weightKg?: number;
   tennisSessionsPerWeek: number; // 0–7
+  /** Weekdays the user plays tennis (1=Mon … 7=Sun) — drives session placement. */
+  tennisDays?: number[];
+  /** How many extra athletic sessions per week the user committed to (1–6). */
+  trainingDaysPerWeek?: number;
   selfRating: Level; // self-assessment during onboarding
   goals: Goal[];
   language: Lang;
