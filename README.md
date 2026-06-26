@@ -1,65 +1,61 @@
 # TennisAce 🎾
 
-Monorepo für die **nativen** TennisAce-Apps auf iOS und Android.
+Native iOS- & Android-App, gebaut mit **Expo** (React Native) — eine Codebasis,
+beide Plattformen. Live-Test auf dem Handy via **Expo Go**, Cloud-Builds und
+App-Store-/Play-Auslieferung via **EAS**.
 
-Beide Plattformen werden **parallel und unabhängig** entwickelt:
+> **Status:** Grundgerüst und Build-/Test-Pipeline stehen und sind verifiziert
+> (Typecheck grün, iOS- und Android-Bundle bauen). Die eigentlichen Screens
+> werden aus dem kommenden **Design** umgesetzt — aktuell läuft nur ein
+> Platzhalter-Screen.
 
-| Plattform | Sprache | UI | Build | Verzeichnis |
-|-----------|---------|----|-------|-------------|
-| iOS       | Swift   | SwiftUI | Xcode (via [XcodeGen](https://github.com/yonaskolb/XcodeGen)) | [`ios/`](ios/) |
-| Android   | Kotlin  | Jetpack Compose | Gradle (Kotlin DSL) | [`android/`](android/) |
+## Stack
 
-Es gibt **keinen geteilten Code** zwischen den Plattformen – beide sind voll
-nativ. Was sie verbindet, ist ein gemeinsamer **fachlicher Vertrag**
-([Domänenmodell](docs/DOMAIN_MODEL.md)) und ein gemeinsamer **API-Vertrag**
-([API_CONTRACT](docs/API_CONTRACT.md)), damit beide Teams ohne gegenseitige
-Blockaden am selben Produkt arbeiten können.
+| Bereich | Wahl |
+|--------|------|
+| Framework | Expo SDK 56 (React Native 0.85, React 19) |
+| Sprache | TypeScript (strict) |
+| Navigation | Expo Router (file-based, `src/app/`) |
+| Builds & Release | EAS Build + EAS Submit |
+| Live-Updates | EAS Update (OTA) |
 
-## Schnellstart
+Bundle-ID / Package: `investments.hoelzl.tennisace`
 
-### iOS (macOS + Xcode erforderlich)
+## Schnellstart — auf dem Handy ansehen
 
-```bash
-cd ios
-brew install xcodegen      # einmalig
-xcodegen generate          # erzeugt TennisAce.xcodeproj
-open TennisAce.xcodeproj    # in Xcode öffnen & ausführen (⌘R)
-```
-
-### Android (Android Studio oder Android SDK erforderlich)
+Voraussetzung: Node 20+, und die App **Expo Go** auf deinem iPhone/Android
+(kostenlos im App Store / Play Store).
 
 ```bash
-cd android
-./gradlew assembleDebug     # baut die Debug-APK
-./gradlew test              # Unit-Tests
-# oder: in Android Studio öffnen und ▶ drücken
+npm install
+npx expo start
 ```
 
-## Repository-Struktur
+Im Terminal erscheint ein **QR-Code** → mit der Kamera (iPhone) bzw. Expo Go
+(Android) scannen → die App lädt live aufs Handy, inkl. **Hot-Reload** bei jeder
+Code-Änderung. Kein Mac-Build, kein Apple-Account nötig.
+
+> Am zuverlässigsten läuft `npx expo start` auf deinem MacBook, wenn Handy und
+> Laptop im selben WLAN sind.
+
+## Bauen & Verifizieren
+
+```bash
+npm run typecheck                    # TypeScript prüfen
+npx expo export -p ios -p android    # echtes JS-Bundle bauen (ohne Xcode/SDK)
+```
+
+## Weiteres
+
+- **Installierbare Builds, App-Store-Release, OTA-Updates, CI:** siehe
+  [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 
 ```
-TennisAce/
-├── ios/            # Native iOS-App (Swift / SwiftUI)
-├── android/        # Native Android-App (Kotlin / Jetpack Compose)
-├── docs/           # Plattformübergreifende Verträge & Architektur
-│   ├── ARCHITECTURE.md   # Architektur-Entscheidungen (warum so?)
-│   ├── DOMAIN_MODEL.md   # Gemeinsames Fachmodell (Match, Player, …)
-│   ├── API_CONTRACT.md   # Backend-Vertrag (Supabase-ready)
-│   └── CONTRIBUTING.md   # Branch-/Review-/Parallel-Workflow
-└── .github/workflows/    # CI: iOS & Android bauen unabhängig & parallel
+src/
+├── app/            # Screens & Routen (Expo Router)
+│   ├── _layout.tsx # Root-Navigation (Stack)
+│   └── index.tsx   # Platzhalter — wird durch das Design ersetzt
+├── components/     # Wiederverwendbare UI (themed-text / themed-view)
+├── constants/      # theme.ts (Farben, Spacing, Fonts)
+└── hooks/          # use-theme, use-color-scheme
 ```
-
-## Paralleles Arbeiten
-
-- **iOS** und **Android** sind eigenständige Projekte mit eigener CI. Ein grüner
-  Build auf einer Plattform hängt nie vom Stand der anderen ab.
-- Änderungen am **Fachmodell** oder **API-Vertrag** werden zuerst in `docs/`
-  abgestimmt – das ist der einzige Synchronisationspunkt.
-- Branch-Konvention und Reviews: siehe [CONTRIBUTING.md](docs/CONTRIBUTING.md).
-
-## Backend
-
-Die Apps laufen sofort mit lokalen **Mock-Daten** (siehe `MockMatchRepository`).
-Der Datenzugriff ist hinter einem `MatchRepository`-Interface gekapselt, sodass
-ein echtes Backend (vorgesehen: **Supabase**) eingesteckt werden kann, ohne UI
-oder ViewModels anzufassen. Details: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).

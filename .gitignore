@@ -1,28 +1,42 @@
-# ── Monorepo root ───────────────────────────────────────────────
-# Platform-specific ignores live in ios/.gitignore and android/.gitignore.
-# This file only covers things that can appear anywhere.
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# OS
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Thumbs.db
-desktop.ini
+*.pem
 
-# Editors / IDEs
-.idea/
-*.iml
-.vscode/
-*.swp
-*~
+# local env files
+.env*.local
 
-# Env / secrets — never commit credentials
-.env
-.env.*
-!.env.example
-*.local
+# typescript
+*.tsbuildinfo
 
-# Logs
-*.log
+example
+
+# generated native folders
+/ios
+/android
