@@ -32,7 +32,7 @@ export default function Health() {
       ctaIcon
       onNext={() => {
         updateDraft({ health });
-        router.push('/onboarding/result');
+        router.push('/test/intro');
       }}
     >
       <View style={styles.list}>
