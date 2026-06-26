@@ -3,14 +3,26 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CourtLines } from '@/components/CourtLines';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 import { TEST_STATIONS } from '@/content/tests';
+import type { Domain } from '@/domain/models';
 import { useTestSession } from '@/store/testSession';
 import { useTheme } from '@/theme/ThemeContext';
-import { RADII, SPACING } from '@/theme/tokens';
+import { DOMAIN_COLORS, FONTS, RADII, SPACING } from '@/theme/tokens';
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+const DOMAIN_COLOR: Record<Domain, string> = {
+  speed: DOMAIN_COLORS.speed,
+  agility: DOMAIN_COLORS.agility,
+  powerLower: DOMAIN_COLORS.power,
+  powerUpper: DOMAIN_COLORS.strength,
+  core: DOMAIN_COLORS.core,
+  aerobic: DOMAIN_COLORS.aerobic,
+  mobility: DOMAIN_COLORS.mobility,
+};
 
 export default function TestRun() {
   const { colors } = useTheme();
@@ -20,6 +32,7 @@ export default function TestRun() {
   const [idx, setIdx] = useState(0);
   const station = TEST_STATIONS[idx];
   const isLast = idx === TEST_STATIONS.length - 1;
+  const dColor = DOMAIN_COLOR[station.domain];
 
   const [text, setText] = useState(String(station.sample));
   const [running, setRunning] = useState(false);
@@ -70,9 +83,13 @@ export default function TestRun() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={[styles.illu, { backgroundColor: colors.surface2 }]}>
-          <Text style={[styles.chip, { backgroundColor: colors.accent, color: colors.accentText }]}>{station.chip}</Text>
-          <Text style={[styles.illuUnit, { color: colors.dim }]}>{station.unit}</Text>
+        <View style={[styles.illu, { backgroundColor: colors.heroBg }]}>
+          <CourtLines color={colors.heroText} opacity={0.12} />
+          <View style={[styles.illuChip, { backgroundColor: dColor }]}>
+            <Text variant="label" color="#FFFFFF">{station.chip}</Text>
+          </View>
+          <Icon name="figure" size={72} color={colors.heroText} strokeWidth={1.3} />
+          <Text style={[styles.illuUnit, { color: colors.heroText }]}>{station.unit}</Text>
         </View>
 
         <Text variant="title" style={styles.name}>{station.name.de}</Text>
@@ -134,9 +151,9 @@ const styles = StyleSheet.create({
   barFill: { height: 5, borderRadius: 3 },
   scroll: { flex: 1 },
   body: { paddingTop: SPACING.lg, paddingBottom: SPACING.lg },
-  illu: { height: 150, borderRadius: RADII.lg, alignItems: 'center', justifyContent: 'center' },
-  chip: { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 13, paddingHorizontal: 12, paddingVertical: 5, borderRadius: RADII.pill, overflow: 'hidden' },
-  illuUnit: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 30, marginTop: 8, opacity: 0.5 },
+  illu: { height: 168, borderRadius: RADII.lg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  illuChip: { position: 'absolute', top: 14, left: 14, paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADII.pill },
+  illuUnit: { position: 'absolute', right: 16, bottom: 12, fontFamily: FONTS.display, fontSize: 30, opacity: 0.35 },
   name: { marginTop: SPACING.lg },
   steps: { gap: SPACING.sm, marginTop: SPACING.md },
   step: { flexDirection: 'row', alignItems: 'center', gap: 10 },
