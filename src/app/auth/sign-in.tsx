@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,15 +8,19 @@ import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { isSupabaseConfigured, supabase } from '@/services/supabase';
+import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { RADII, SPACING } from '@/theme/tokens';
 
-type Mode = 'signin' | 'signup';
+// 'secure' = attach an email to the current (anonymous) user — same id, no data
+// loss. 'signin' = log into an existing account from a fresh device.
+type Mode = 'secure' | 'signin';
 
 export default function SignIn() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [mode, setMode] = useState<Mode>('signin');
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<Mode>(params.mode === 'signin' ? 'signin' : 'secure');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -31,20 +35,22 @@ export default function SignIn() {
     try {
       if (mode === 'signin') {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) {
-          setMessage({ kind: 'error', text: error.message });
-        } else {
-          router.back();
-        }
+        if (error) setMessage({ kind: 'error', text: error.message });
+        else router.back();
       } else {
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
-        if (error) {
-          setMessage({ kind: 'error', text: error.message });
-        } else if (!data.session) {
-          setMessage({ kind: 'info', text: 'Fast geschafft – bestätige deine E-Mail-Adresse, dann kannst du dich anmelden.' });
-          setMode('signin');
+        // Secure the current guest account by attaching email + password.
+        const guest = useAuthStore.getState().user;
+        if (guest) {
+          const { error } = await supabase.auth.updateUser({ email: email.trim(), password });
+          if (error) setMessage({ kind: 'error', text: error.message });
+          else router.back();
         } else {
-          router.back();
+          const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+          if (error) setMessage({ kind: 'error', text: error.message });
+          else if (!data.session) {
+            setMessage({ kind: 'info', text: 'Fast geschafft – bestätige deine E-Mail, dann bist du gesichert.' });
+            setMode('signin');
+          } else router.back();
         }
       }
     } catch (e) {
@@ -53,6 +59,8 @@ export default function SignIn() {
       setBusy(false);
     }
   };
+
+  const secure = mode === 'secure';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top + 6 }}>
@@ -64,14 +72,16 @@ export default function SignIn() {
 
       <Screen scroll>
         <View style={[styles.hero, { backgroundColor: colors.heroBg }]}>
-          <Icon name="bolt" size={40} color={colors.accent} strokeWidth={2} />
+          <Icon name={secure ? 'bolt' : 'check'} size={40} color={colors.accent} strokeWidth={2} />
         </View>
 
-        <Text variant="title" style={styles.h}>{mode === 'signin' ? 'Willkommen zurück' : 'Konto erstellen'}</Text>
+        <Text variant="title" style={styles.h}>{secure ? 'Konto sichern' : 'Anmelden'}</Text>
         <Text variant="body" color={colors.dim} style={styles.p}>
-          {isSupabaseConfigured
-            ? 'Sichere deinen Fortschritt in der Cloud und sync ihn auf alle Geräte.'
-            : 'Cloud-Sync ist in diesem Build noch nicht konfiguriert (Supabase-Keys fehlen).'}
+          {!isSupabaseConfigured
+            ? 'Cloud-Sync ist in diesem Build noch nicht konfiguriert (Supabase-Keys fehlen).'
+            : secure
+              ? 'Hänge eine E-Mail an dein Konto – dann liegt dein Fortschritt sicher in der Cloud und ist auf jedem Gerät da.'
+              : 'Melde dich mit deinem bestehenden Konto an, um deinen Fortschritt zu laden.'}
         </Text>
 
         {isSupabaseConfigured ? (
@@ -106,15 +116,15 @@ export default function SignIn() {
             ) : null}
 
             <Button
-              title={mode === 'signin' ? 'Anmelden' : 'Konto erstellen'}
+              title={secure ? 'Konto sichern' : 'Anmelden'}
               onPress={submit}
               disabled={!valid}
               loading={busy}
               style={styles.cta}
             />
-            <Pressable onPress={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setMessage(null); }} style={styles.toggle}>
+            <Pressable onPress={() => { setMode(secure ? 'signin' : 'secure'); setMessage(null); }} style={styles.toggle}>
               <Text variant="small" color={colors.accentTx} center>
-                {mode === 'signin' ? 'Noch kein Konto? Registrieren' : 'Schon ein Konto? Anmelden'}
+                {secure ? 'Schon ein Konto? Anmelden' : 'Neu hier? Konto sichern'}
               </Text>
             </Pressable>
           </>

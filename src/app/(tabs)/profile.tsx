@@ -74,7 +74,7 @@ export default function ProfileTab() {
         </View>
       </View>
 
-      {authStatus === 'signedIn' ? (
+      {authStatus === 'signedIn' && authUser && !authUser.is_anonymous ? (
         <View style={[styles.account, { backgroundColor: colors.surface, borderColor: colors.line }]}>
           <View style={styles.accountTop}>
             <View style={[styles.navIcon, { backgroundColor: `${colors.accent}26` }]}>
@@ -102,8 +102,8 @@ export default function ProfileTab() {
             <Icon name="bolt" size={20} color={colors.accentTx} strokeWidth={2.2} />
           </View>
           <View style={styles.flex}>
-            <Text variant="bodySemi" color={colors.text}>{de ? 'Anmelden & Cloud-Sync' : 'Sign in & cloud sync'}</Text>
-            <Text variant="small" color={colors.dim}>{de ? 'Fortschritt sichern – auf allen Geräten' : 'Back up progress across devices'}</Text>
+            <Text variant="bodySemi" color={colors.text}>{de ? 'Konto sichern & Cloud-Sync' : 'Secure account & cloud sync'}</Text>
+            <Text variant="small" color={colors.dim}>{de ? 'Dein Fortschritt – auf jedem Gerät' : 'Your progress – on every device'}</Text>
           </View>
           <Icon name="chevronRight" size={20} color={colors.dim} />
         </Pressable>

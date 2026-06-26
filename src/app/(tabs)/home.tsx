@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/Text';
 import { LEVEL_NAMES, t } from '@/domain/catalog';
 import type { Level } from '@/domain/models';
 import { useAppStore, useLang } from '@/store/appStore';
+import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
 
@@ -25,6 +26,8 @@ export default function Home() {
   const workoutLog = useAppStore((s) => s.workoutLog);
   const testHistory = useAppStore((s) => s.testHistory);
   const setLanguage = useAppStore((s) => s.setLanguage);
+  const authStatus = useAuthStore((s) => s.status);
+  const authUser = useAuthStore((s) => s.user);
   const de = lang === 'de';
 
   const now = new Date();
@@ -67,6 +70,10 @@ export default function Home() {
     : daysSinceTest >= 30
       ? (de ? 'jetzt fällig · genaue Einstufung' : 'due now · exact rating')
       : (de ? `in ${30 - daysSinceTest} Tagen · genaue Einstufung` : `in ${30 - daysSinceTest} days · exact rating`);
+
+  // Nudge guests to secure their account once they have progress to lose.
+  const secured = authStatus === 'signedIn' && authUser != null && !authUser.is_anonymous;
+  const showSecure = !secured && (testHistory.length > 0 || workoutLog.length > 0);
 
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
@@ -135,6 +142,18 @@ export default function Home() {
           </Pressable>
         </View>
       </View>
+
+      {/* Secure-account nudge (guests with progress) */}
+      {showSecure ? (
+        <Pressable onPress={() => router.push('/auth/sign-in')} style={[styles.secure, { backgroundColor: `${colors.accent}1F`, borderColor: colors.accent }]}>
+          <Icon name="bolt" size={20} color={colors.accentTx} strokeWidth={2.2} />
+          <View style={styles.flex}>
+            <Text variant="bodySemi" color={colors.text}>{de ? 'Sichere deinen Fortschritt' : 'Secure your progress'}</Text>
+            <Text variant="small" color={colors.dim}>{de ? 'E-Mail anhängen – dann auf jedem Gerät da' : 'Add an email – then on every device'}</Text>
+          </View>
+          <Icon name="chevronRight" size={20} color={colors.dim} />
+        </Pressable>
+      ) : null}
 
       {/* Today stats */}
       <View style={styles.sectionHead}>
@@ -261,4 +280,6 @@ const styles = StyleSheet.create({
 
   monthly: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 11 },
   monthlyIcon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+
+  secure: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 22, marginTop: 16, padding: 15, borderRadius: 18, borderWidth: 1 },
 });

@@ -88,19 +88,24 @@ export function useSyncBridge(): void {
   const init = useAuthStore((s) => s.init);
   const status = useAuthStore((s) => s.status);
   const userId = useAuthStore((s) => s.user?.id);
-  const reconciled = useRef(false);
+  const reconciledFor = useRef<string | null>(null);
 
   useEffect(() => {
     init();
   }, [init]);
 
   useEffect(() => {
-    if (status === 'signedOut') reconciled.current = false;
-    if (status !== 'signedIn' || !userId) return;
-    if (!reconciled.current) {
-      reconciled.current = true;
-      syncOnSignIn(userId).catch(() => {});
+    if (status === 'signedOut') {
+      reconciledFor.current = null;
+      return;
     }
+    if (status !== 'signedIn' || !userId) return;
+    // Reconcile once per distinct user id: a fresh sign-in to an existing
+    // account (new id) pulls its data; securing the same anon user (same id)
+    // does not re-pull and keeps the local progress.
+    if (reconciledFor.current === userId) return;
+    reconciledFor.current = userId;
+    syncOnSignIn(userId).catch(() => {});
   }, [status, userId]);
 
   useEffect(() => {
