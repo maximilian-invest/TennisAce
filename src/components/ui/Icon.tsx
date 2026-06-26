@@ -4,8 +4,14 @@ export type IconName =
   | 'arrowRight'
   | 'chevronLeft'
   | 'chevronRight'
+  | 'chevronDown'
   | 'check'
   | 'info'
+  | 'menu'
+  | 'swap'
+  | 'bulb'
+  | 'replace'
+  | 'pause'
   | 'eqNone'
   | 'eqHome'
   | 'eqGym'
@@ -25,8 +31,19 @@ export function Icon({ name, size = 20, color = '#000', strokeWidth = 2 }: Props
       {name === 'arrowRight' && <Path d="M5 12h14M13 6l6 6-6 6" {...s} />}
       {name === 'chevronLeft' && <Path d="M15 6l-6 6 6 6" {...s} />}
       {name === 'chevronRight' && <Path d="M9 6l6 6-6 6" {...s} />}
+      {name === 'chevronDown' && <Path d="M6 9l6 6 6-6" {...s} />}
       {name === 'check' && <Path d="M5 13l4 4L19 7" {...s} />}
+      {name === 'menu' && <Path d="M4 6h16M4 12h16M4 18h16" {...s} />}
+      {name === 'swap' && <Path d="M7 8l-4 4 4 4M3 12h12M17 16l4-4-4-4M21 12H9" {...s} />}
+      {name === 'bulb' && <Path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1-1 2H9c0-1-.3-1.4-1-2A6 6 0 0 1 12 3z" {...s} />}
+      {name === 'replace' && <Path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 4v4h-4M21 12a9 9 0 0 1-15 6.7L3 16M3 20v-4h4" {...s} />}
       {name === 'play' && <Path d="M7 5l13 7-13 7z" fill={color} />}
+      {name === 'pause' && (
+        <>
+          <Rect x={6} y={5} width={4} height={14} rx={1.2} fill={color} />
+          <Rect x={14} y={5} width={4} height={14} rx={1.2} fill={color} />
+        </>
+      )}
       {name === 'flame' && <Path d="M12 2c1 3-1 5-2 7s0 4 2 4 3-2 2-5c2 1 4 4 4 7a6 6 0 0 1-12 0c0-4 4-6 6-13z" fill={color} />}
       {name === 'bolt' && <Path d="M13 2L3 14h7l-1 8 10-12h-7z" fill={color} />}
       {name === 'steps' && (

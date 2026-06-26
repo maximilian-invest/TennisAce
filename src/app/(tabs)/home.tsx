@@ -106,7 +106,7 @@ export default function Home() {
             <Text style={[styles.heroMetaDim, { color: colors.heroText }]}>· 45 Min · 6 {de ? 'Übungen' : 'exercises'}</Text>
           </View>
           <Pressable
-            onPress={() => router.push('/training')}
+            onPress={() => router.push('/workout')}
             style={({ pressed }) => [styles.playBtn, { backgroundColor: colors.accent, transform: [{ translateY: pressed ? 1 : 0 }] }]}
           >
             <Icon name="play" size={20} color={colors.accentText} />
