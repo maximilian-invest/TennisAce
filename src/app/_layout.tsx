@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SyncBridge } from '@/components/SyncBridge';
 import { useAppStore } from '@/store/appStore';
 import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
 
@@ -62,6 +63,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
+          <SyncBridge />
           <ThemedNavigator />
         </ThemeProvider>
       </SafeAreaProvider>
