@@ -13,7 +13,7 @@ App-Store-/Play-Auslieferung via **EAS**.
 
 | Bereich | Wahl |
 |--------|------|
-| Framework | Expo SDK 56 (React Native 0.85, React 19) |
+| Framework | Expo SDK 54 (React Native 0.81, React 19) |
 | Sprache | TypeScript (strict) |
 | Navigation | Expo Router (file-based, `src/app/`) |
 | Builds & Release | EAS Build + EAS Submit |

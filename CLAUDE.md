@@ -2,7 +2,7 @@
 
 # TennisAce
 
-Native iOS + Android app built with **Expo** (SDK 56, React Native, TypeScript,
+Native iOS + Android app built with **Expo** (SDK 54, React Native, TypeScript,
 Expo Router). One codebase, both platforms.
 
 - **Screens come from a design** the user provides — until then

@@ -8,7 +8,6 @@
     "scheme": "tennisace",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "supportsTablet": true,
       "bundleIdentifier": "investments.hoelzl.tennisace"
     },
