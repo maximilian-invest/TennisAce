@@ -5,8 +5,10 @@ import { CourtLines } from '@/components/CourtLines';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { LEVEL_NAMES, t } from '@/domain/catalog';
-import type { Level } from '@/domain/models';
+import { EQUIPMENT_MODES, LEVEL_NAMES, t } from '@/domain/catalog';
+import type { Domain, Level } from '@/domain/models';
+import { generateWeekPlan } from '@/services/personalization/planGenerator';
+import { coachCopy } from '@/services/personalization/tonality';
 import { useAppStore, useLang } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/theme/ThemeContext';
@@ -17,6 +19,15 @@ const MONTHS_DE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli',
 const DAY_LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S']; // Mon–Sun
 const WEEK_MARKS = [DOMAIN_COLORS.strength, null, DOMAIN_COLORS.speed, null, DOMAIN_COLORS.power, null, null];
 const LEVEL_ORDER: Level[] = ['L1', 'L2', 'L3', 'L4'];
+const DOMAIN_COLOR: Record<Domain, string> = {
+  speed: DOMAIN_COLORS.speed,
+  agility: DOMAIN_COLORS.agility,
+  powerLower: DOMAIN_COLORS.power,
+  powerUpper: DOMAIN_COLORS.strength,
+  core: DOMAIN_COLORS.core,
+  aerobic: DOMAIN_COLORS.aerobic,
+  mobility: DOMAIN_COLORS.mobility,
+};
 
 export default function Home() {
   const { colors } = useTheme();
@@ -26,6 +37,8 @@ export default function Home() {
   const workoutLog = useAppStore((s) => s.workoutLog);
   const testHistory = useAppStore((s) => s.testHistory);
   const isPremium = useAppStore((s) => s.isPremium);
+  const health = useAppStore((s) => s.health);
+  const equipment = useAppStore((s) => s.equipment);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const authStatus = useAuthStore((s) => s.status);
   const authUser = useAuthStore((s) => s.user);
@@ -79,6 +92,28 @@ export default function Home() {
   // First performance test is free; monthly retests are ACE Pro.
   const lockedTest = !isPremium && testHistory.length > 0;
 
+  // Personalized "today" from the engine.
+  const plan = profile
+    ? generateWeekPlan({
+        age: profile.age, level, goals: profile.goals, health,
+        tennisDays: profile.tennisDays, trainingDaysPerWeek: profile.trainingDaysPerWeek,
+        weakest: testHistory[testHistory.length - 1]?.weakestDomain, lang,
+      })
+    : null;
+  const todayIdx = (now.getDay() + 6) % 7; // Mon=0
+  const todaySession = plan?.week[todayIdx] ?? null;
+  const isTennisToday = (profile?.tennisDays ?? []).includes(todayIdx + 1);
+  const marks = plan ? plan.week.map((s) => (s ? DOMAIN_COLOR[s.domain] : null)) : WEEK_MARKS;
+  const coach = profile ? coachCopy(profile.age, lang) : null;
+  const equipLabel = equipment ? t(EQUIPMENT_MODES.find((m) => m.id === equipment.mode)?.label ?? EQUIPMENT_MODES[0].label, lang) : (de ? 'Athletik' : 'Athletic');
+
+  // The hero's headline session: tennis-day activation, a training session, or active recovery.
+  const hero = isTennisToday
+    ? { kicker: de ? 'HEUTE SPIELST DU' : 'YOU PLAY TODAY', title: de ? 'Aktivierung vor dem Match' : 'Pre-match activation', meta: de ? '5 Min · frisch bleiben' : '5 min · stay fresh', color: DOMAIN_COLORS.mobility, cta: de ? 'Aktivierung starten' : 'Start activation' }
+    : todaySession
+      ? { kicker: coach?.planKicker ?? (de ? 'HEUTIGE EINHEIT' : "TODAY'S SESSION"), title: todaySession.title, meta: todaySession.meta, color: DOMAIN_COLOR[todaySession.domain], cta: de ? 'Einheit starten' : 'Start session' }
+      : { kicker: de ? 'RUHETAG' : 'REST DAY', title: de ? 'Aktive Erholung · Mobilität' : 'Active recovery · mobility', meta: de ? '15 Min · locker' : '15 min · easy', color: DOMAIN_COLORS.mobility, cta: de ? 'Mobilität starten' : 'Start mobility' };
+
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
       {/* Header */}
@@ -114,7 +149,7 @@ export default function Home() {
           <View key={i} style={[styles.dayPill, d.isToday && { backgroundColor: colors.accent }]}>
             <Text style={[styles.dayLetter, { color: d.isToday ? colors.accentText : colors.dim }]}>{d.letter}</Text>
             <Text style={[styles.dayDate, { color: d.isToday ? colors.accentText : colors.text }]}>{d.date}</Text>
-            <View style={[styles.dayMark, { backgroundColor: d.mark ?? 'transparent' }]} />
+            <View style={[styles.dayMark, { backgroundColor: marks[i] ?? 'transparent' }]} />
           </View>
         ))}
       </View>
@@ -124,25 +159,22 @@ export default function Home() {
         <CourtLines color={colors.heroText} />
         <View style={styles.heroInner}>
           <View style={styles.heroTop}>
-            <Text style={[styles.heroKicker, { color: colors.heroText }]}>{de ? 'HEUTIGE EINHEIT' : "TODAY'S SESSION"}</Text>
+            <Text style={[styles.heroKicker, { color: colors.heroText }]}>{hero.kicker}</Text>
             <View style={styles.heroPill}>
-              <Text variant="label" color={colors.heroText}>{de ? 'Heim-Equipment' : 'Home equipment'}</Text>
+              <Text variant="label" color={colors.heroText}>{equipLabel}</Text>
             </View>
           </View>
-          <Text style={[styles.heroTitle, { color: colors.heroText }]}>
-            {de ? 'Kraft Unterkörper + Core' : 'Lower-body Strength + Core'}
-          </Text>
+          <Text style={[styles.heroTitle, { color: colors.heroText }]}>{hero.title}</Text>
           <View style={styles.heroMeta}>
-            <Meta color={DOMAIN_COLORS.strength} label={de ? 'Kraft' : 'Strength'} heroText={colors.heroText} />
-            <Meta color={DOMAIN_COLORS.core} label="Core" heroText={colors.heroText} />
-            <Text style={[styles.heroMetaDim, { color: colors.heroText }]}>· 45 Min · 6 {de ? 'Übungen' : 'exercises'}</Text>
+            <Meta color={hero.color} label={hero.meta} heroText={colors.heroText} />
           </View>
+          {coach ? <Text style={[styles.coachLine, { color: colors.heroText }]}>{coach.coachLine}</Text> : null}
           <Pressable
             onPress={() => router.push('/workout')}
             style={({ pressed }) => [styles.playBtn, { backgroundColor: colors.accent, transform: [{ translateY: pressed ? 1 : 0 }] }]}
           >
             <Icon name="play" size={20} color={colors.accentText} />
-            <Text style={[styles.playText, { color: colors.accentText }]}>{de ? 'Einheit starten' : 'Start session'}</Text>
+            <Text style={[styles.playText, { color: colors.accentText }]}>{hero.cta}</Text>
           </Pressable>
         </View>
       </View>
@@ -269,7 +301,8 @@ const styles = StyleSheet.create({
   metaDot: { width: 8, height: 8, borderRadius: 4 },
   metaLabel: { fontFamily: FONTS.bodySemi, fontSize: 13, opacity: 0.9 },
   heroMetaDim: { fontFamily: FONTS.bodySemi, fontSize: 13, opacity: 0.7 },
-  playBtn: { marginTop: 18, height: 54, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  coachLine: { fontFamily: FONTS.body, fontSize: 12.5, lineHeight: 17, opacity: 0.8, marginTop: 11 },
+  playBtn: { marginTop: 16, height: 54, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   playText: { fontFamily: FONTS.bodyBold, fontSize: 15.5 },
 
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 24, marginTop: 24 },
