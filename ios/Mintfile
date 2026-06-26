@@ -1,0 +1,4 @@
+# Pin tool versions for reproducible project generation.
+# Install with:  mint bootstrap     (https://github.com/yonaskolb/Mint)
+# Then run:      mint run xcodegen generate
+yonaskolb/XcodeGen@2.42.0

@@ -1,0 +1,19 @@
+# Generated Xcode project — produced by `xcodegen generate`, never committed.
+*.xcodeproj/
+
+# Xcode build output
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+
+# Dependency managers (not used yet; ignored in case they're added later)
+Pods/
+Carthage/Build/
+
+# Secrets — Supabase keys etc. go here, never committed
+Secrets.xcconfig
+
+# macOS
+.DS_Store

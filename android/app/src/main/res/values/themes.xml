@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The real UI theme is Material 3 supplied by Compose (see ui/theme/).
+         This XML theme only styles the window before Compose takes over. -->
+    <style name="Theme.TennisAce" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

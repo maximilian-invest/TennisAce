@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+app/build/
+captures/
+
+# Local config — never commit (SDK path, signing, Supabase keys, …)
+local.properties
+*.keystore
+!debug.keystore
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Misc
+.DS_Store
+.externalNativeBuild/
+.cxx/
