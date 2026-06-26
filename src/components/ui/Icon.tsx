@@ -19,7 +19,10 @@ export type IconName =
   | 'steps'
   | 'flame'
   | 'bolt'
-  | 'calendar';
+  | 'calendar'
+  | 'figure'
+  | 'search'
+  | 'plus';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -61,6 +64,19 @@ export function Icon({ name, size = 20, color = '#000', strokeWidth = 2 }: Props
           <Path d="M12 8h.01M11 12h1v4h1" {...s} />
         </>
       )}
+      {name === 'figure' && (
+        <>
+          <Circle cx={12} cy={5} r={2.3} {...s} />
+          <Path d="M12 8v6M12 11l-4 2M12 11l4 2M12 14l-3 5M12 14l3 5" {...s} />
+        </>
+      )}
+      {name === 'search' && (
+        <>
+          <Circle cx={11} cy={11} r={7} {...s} />
+          <Path d="M21 21l-4-4" {...s} />
+        </>
+      )}
+      {name === 'plus' && <Path d="M12 5v14M5 12h14" {...s} />}
       {name === 'eqNone' && (
         <>
           <Circle cx={12} cy={7} r={3.4} {...s} />

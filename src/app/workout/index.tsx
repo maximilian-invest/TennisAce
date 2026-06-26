@@ -86,7 +86,7 @@ export default function WorkoutPlayer() {
           <Text style={[styles.exName, { color: colors.text }]}>{ex.name.en}</Text>
           <Text variant="small" color={colors.dim}>{ex.name.de}</Text>
         </View>
-        <RoundBtn onPress={() => {}} icon="menu" colors={colors} />
+        <RoundBtn onPress={() => router.push('/exercises')} icon="menu" colors={colors} />
       </View>
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
