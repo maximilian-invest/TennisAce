@@ -8,9 +8,11 @@ import { Text } from '@/components/ui/Text';
 import { DOMAIN_LABELS } from '@/content/reasoningDomains';
 import { EXERCISES } from '@/content/exercises';
 import type { Domain } from '@/domain/models';
-import { useLang } from '@/store/appStore';
+import { useAppStore, useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
+
+const FREE_EXERCISES = 15;
 
 export const domainColor: Record<Domain, string> = {
   speed: DOMAIN_COLORS.speed,
@@ -27,6 +29,7 @@ const PRESENT: Domain[] = Array.from(new Set(EXERCISES.map((e) => e.domain)));
 export default function ExerciseLibrary() {
   const { colors } = useTheme();
   const lang = useLang();
+  const isPremium = useAppStore((s) => s.isPremium);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Domain | 'all'>('all');
 
@@ -38,6 +41,10 @@ export default function ExerciseLibrary() {
       return true;
     });
   }, [query, filter]);
+
+  // Free: a starter slice; ACE Pro unlocks the full catalogue.
+  const visible = isPremium ? list : list.slice(0, FREE_EXERCISES);
+  const hiddenCount = list.length - visible.length;
 
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
@@ -65,7 +72,7 @@ export default function ExerciseLibrary() {
       </ScrollView>
 
       <View style={styles.list}>
-        {list.map((e) => (
+        {visible.map((e) => (
           <Pressable key={e.id} onPress={() => router.push(`/exercises/${e.id}`)} style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.line }]}>
             <View style={[styles.thumb, { backgroundColor: `${domainColor[e.domain]}26` }]}>
               <Icon name="figure" size={24} color={domainColor[e.domain]} strokeWidth={1.8} />
@@ -86,6 +93,20 @@ export default function ExerciseLibrary() {
             </View>
           </Pressable>
         ))}
+        {hiddenCount > 0 ? (
+          <Pressable onPress={() => router.push('/paywall')} style={[styles.lock, { backgroundColor: colors.heroBg }]}>
+            <View style={[styles.lockIcon, { backgroundColor: `${colors.accent}26` }]}>
+              <Icon name="bolt" size={20} color={colors.accent} strokeWidth={2.2} />
+            </View>
+            <View style={styles.rowMain}>
+              <Text variant="bodySemi" color={colors.heroText}>+{hiddenCount} weitere Übungen</Text>
+              <Text variant="small" color={colors.heroText} style={styles.lockSub}>Komplette Bibliothek mit ACE Pro</Text>
+            </View>
+            <View style={[styles.tag, { backgroundColor: colors.accent }]}>
+              <Text variant="label" color={colors.accentText}>PRO</Text>
+            </View>
+          </Pressable>
+        ) : null}
         {list.length === 0 ? <Text variant="body" color={colors.dim} center style={styles.empty}>Keine Übung gefunden.</Text> : null}
       </View>
     </Screen>
@@ -120,5 +141,8 @@ const styles = StyleSheet.create({
   tag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: RADII.pill },
   dots: { flexDirection: 'row', gap: 3 },
   diffDot: { width: 6, height: 6, borderRadius: 3 },
+  lock: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, marginTop: 3 },
+  lockIcon: { width: 46, height: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  lockSub: { opacity: 0.8, marginTop: 1 },
   empty: { marginTop: 40 },
 });

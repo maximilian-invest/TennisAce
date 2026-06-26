@@ -40,6 +40,7 @@ export default function ProgressTab() {
   const testHistory = useAppStore((s) => s.testHistory);
   const workoutLog = useAppStore((s) => s.workoutLog);
   const levelState = useAppStore((s) => s.levelState);
+  const isPremium = useAppStore((s) => s.isPremium);
 
   const latest = testHistory[testHistory.length - 1];
   const baseline = testHistory.length > 1 ? testHistory[0] : undefined;
@@ -156,13 +157,19 @@ export default function ProgressTab() {
             </View>
           </View>
 
-          <Pressable onPress={() => router.push('/test/intro')} style={({ pressed }) => [styles.monthlyCta, { backgroundColor: colors.heroBg, transform: [{ translateY: pressed ? 1 : 0 }] }]}>
+          <Pressable onPress={() => router.push(isPremium ? '/test/intro' : '/paywall')} style={({ pressed }) => [styles.monthlyCta, { backgroundColor: colors.heroBg, transform: [{ translateY: pressed ? 1 : 0 }] }]}>
             <Icon name="calendar" size={20} color={colors.accent} strokeWidth={2} />
             <View style={styles.flex}>
               <Text variant="bodySemi" color={colors.heroText}>Monatstest machen</Text>
               <Text variant="small" color={colors.heroText} style={styles.monthlyCtaSub}>Neu vermessen & Stufe bestätigen</Text>
             </View>
-            <Icon name="chevronRight" size={20} color={colors.heroText} />
+            {isPremium ? (
+              <Icon name="chevronRight" size={20} color={colors.heroText} />
+            ) : (
+              <View style={[styles.proPill, { backgroundColor: colors.accent }]}>
+                <Text variant="label" color={colors.accentText}>PRO</Text>
+              </View>
+            )}
           </Pressable>
         </>
       )}
@@ -280,4 +287,5 @@ const styles = StyleSheet.create({
 
   monthlyCta: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 16, borderRadius: 18, marginTop: 24 },
   monthlyCtaSub: { opacity: 0.78, marginTop: 1 },
+  proPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
 });

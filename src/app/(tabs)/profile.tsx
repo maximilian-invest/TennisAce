@@ -13,15 +13,8 @@ import type { Lang } from '@/domain/models';
 import { pushSnapshot } from '@/services/sync';
 import { useAppStore, useLang } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
-import type { ThemePreference } from '@/theme/themes';
 import { useTheme } from '@/theme/ThemeContext';
 import { RADII, SPACING } from '@/theme/tokens';
-
-const THEME_OPTIONS: { id: ThemePreference; label: string }[] = [
-  { id: 'system', label: 'System' },
-  { id: 'chalk', label: 'Chalk' },
-  { id: 'court', label: 'Court' },
-];
 
 const LANG_OPTIONS: { id: Lang; label: string }[] = [
   { id: 'de', label: 'DE' },
@@ -36,8 +29,8 @@ export default function ProfileTab() {
   const levelState = useAppStore((s) => s.levelState);
   const settings = useAppStore((s) => s.settings);
   const setLanguage = useAppStore((s) => s.setLanguage);
-  const setTheme = useAppStore((s) => s.setTheme);
   const resetAll = useAppStore((s) => s.resetAll);
+  const isPremium = useAppStore((s) => s.isPremium);
   const level = levelState?.currentLevel ?? 'L1';
 
   const authStatus = useAuthStore((s) => s.status);
@@ -109,15 +102,32 @@ export default function ProfileTab() {
         </Pressable>
       )}
 
+      {isPremium ? (
+        <View style={[styles.navRow, { backgroundColor: colors.surface, borderColor: colors.accent }]}>
+          <View style={[styles.navIcon, { backgroundColor: `${colors.accent}26` }]}>
+            <Icon name="check" size={20} color={colors.accentTx} strokeWidth={2.6} />
+          </View>
+          <View style={styles.flex}>
+            <Text variant="bodySemi" color={colors.text}>{de ? 'ACE Pro aktiv 🎾' : 'ACE Pro active 🎾'}</Text>
+            <Text variant="small" color={colors.dim}>{de ? 'Alle Funktionen freigeschaltet' : 'All features unlocked'}</Text>
+          </View>
+        </View>
+      ) : (
+        <Pressable onPress={() => router.push('/paywall')} style={[styles.navRow, { backgroundColor: colors.heroBg, borderColor: colors.heroBg }]}>
+          <View style={[styles.navIcon, { backgroundColor: `${colors.accent}26` }]}>
+            <Icon name="bolt" size={20} color={colors.accent} strokeWidth={2.2} />
+          </View>
+          <View style={styles.flex}>
+            <Text variant="bodySemi" color={colors.heroText}>{de ? 'Auf ACE Pro upgraden' : 'Upgrade to ACE Pro'}</Text>
+            <Text variant="small" color={colors.heroText} style={styles.proSub}>{de ? 'Monatstests, volle Bibliothek & mehr' : 'Monthly tests, full library & more'}</Text>
+          </View>
+          <Icon name="chevronRight" size={20} color={colors.heroText} />
+        </Pressable>
+      )}
+
       <Setting label={de ? 'Sprache' : 'Language'}>
         {LANG_OPTIONS.map((l) => (
           <Chip key={l.id} label={l.label} selected={settings.language === l.id} onPress={() => setLanguage(l.id)} />
-        ))}
-      </Setting>
-
-      <Setting label="Theme">
-        {THEME_OPTIONS.map((th) => (
-          <Chip key={th.id} label={th.label} selected={settings.theme === th.id} onPress={() => setTheme(th.id)} />
         ))}
       </Setting>
 
@@ -169,5 +179,6 @@ const styles = StyleSheet.create({
   accountTop: { flexDirection: 'row', alignItems: 'center', gap: 13 },
   syncBtn: { marginTop: SPACING.md },
   signout: { marginTop: SPACING.md, paddingVertical: SPACING.xs },
+  proSub: { opacity: 0.8, marginTop: 1 },
   reset: { marginTop: SPACING.xxl },
 });

@@ -25,6 +25,7 @@ export default function Home() {
   const levelState = useAppStore((s) => s.levelState);
   const workoutLog = useAppStore((s) => s.workoutLog);
   const testHistory = useAppStore((s) => s.testHistory);
+  const isPremium = useAppStore((s) => s.isPremium);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const authStatus = useAuthStore((s) => s.status);
   const authUser = useAuthStore((s) => s.user);
@@ -74,6 +75,9 @@ export default function Home() {
   // Nudge guests to secure their account once they have progress to lose.
   const secured = authStatus === 'signedIn' && authUser != null && !authUser.is_anonymous;
   const showSecure = !secured && (testHistory.length > 0 || workoutLog.length > 0);
+
+  // First performance test is free; monthly retests are ACE Pro.
+  const lockedTest = !isPremium && testHistory.length > 0;
 
   return (
     <Screen scroll padded={false} contentStyle={styles.content}>
@@ -189,8 +193,8 @@ export default function Home() {
         </View>
       </Pressable>
 
-      {/* Monthly test card */}
-      <Pressable onPress={() => router.push('/test/intro')} style={[styles.card, styles.monthly, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+      {/* Monthly test card (Pro after the first free test) */}
+      <Pressable onPress={() => router.push(lockedTest ? '/paywall' : '/test/intro')} style={[styles.card, styles.monthly, { backgroundColor: colors.surface, borderColor: colors.line }]}>
         <View style={[styles.monthlyIcon, { backgroundColor: hexTint(colors.secondary) }]}>
           <Icon name="calendar" size={22} color={colors.secondary} strokeWidth={1.9} />
         </View>
@@ -198,7 +202,13 @@ export default function Home() {
           <Text variant="bodySemi" color={colors.text}>{de ? 'Monatstest' : 'Monthly test'}</Text>
           <Text variant="small" color={colors.dim}>{monthlySub}</Text>
         </View>
-        <Icon name="chevronRight" size={20} color={colors.dim} />
+        {lockedTest ? (
+          <View style={[styles.proPill, { backgroundColor: colors.accent }]}>
+            <Text variant="label" color={colors.accentText}>PRO</Text>
+          </View>
+        ) : (
+          <Icon name="chevronRight" size={20} color={colors.dim} />
+        )}
       </Pressable>
     </Screen>
   );
@@ -282,4 +292,5 @@ const styles = StyleSheet.create({
   monthlyIcon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
 
   secure: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 22, marginTop: 16, padding: 15, borderRadius: 18, borderWidth: 1 },
+  proPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
 });

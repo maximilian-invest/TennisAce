@@ -34,6 +34,8 @@ type AppState = {
   levelState: LevelState | null;
   testHistory: TestResult[];
   workoutLog: WorkoutLogEntry[];
+  /** Premium entitlement — set by the purchase flow (RevenueCat later). */
+  isPremium: boolean;
   settings: Settings;
   draft: OnboardingDraft;
 
@@ -48,6 +50,7 @@ type AppState = {
   setLevelState: (levelState: LevelState) => void;
   logWorkout: (entry: WorkoutLogEntry) => void;
   toggleEquipmentItem: (item: EquipmentItem) => void;
+  setPremium: (value: boolean) => void;
   /** Replace the local store from a remote snapshot (Supabase sync). */
   hydrateFromRemote: (snapshot: RemoteSnapshot) => void;
   setLanguage: (language: Lang) => void;
@@ -75,6 +78,7 @@ export const useAppStore = create<AppState>()(
       levelState: null,
       testHistory: [],
       workoutLog: [],
+      isPremium: false,
       settings: { theme: 'system', language: 'de' },
       draft: {},
 
@@ -92,6 +96,7 @@ export const useAppStore = create<AppState>()(
           const items = has ? base.items.filter((i) => i !== item) : [...base.items, item];
           return { equipment: { ...base, items } };
         }),
+      setPremium: (value) => set({ isPremium: value }),
       hydrateFromRemote: (snapshot) =>
         set({
           profile: snapshot.profile,
@@ -129,6 +134,7 @@ export const useAppStore = create<AppState>()(
         levelState: s.levelState,
         testHistory: s.testHistory,
         workoutLog: s.workoutLog,
+        isPremium: s.isPremium,
         settings: s.settings,
         draft: s.draft,
       }),

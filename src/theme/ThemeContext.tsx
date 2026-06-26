@@ -1,23 +1,14 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
 
-import { useAppStore } from '@/store/appStore';
-import { chalkTheme, THEMES, type Theme } from './themes';
+import { chalkTheme, type Theme } from './themes';
 
 const ThemeContext = createContext<Theme>(chalkTheme);
 
+// Single fixed look — the "Lime" (Chalk) design. The Court/dark theme stays in
+// themes.ts but is intentionally unreachable; flip this back to a preference
+// lookup if a second theme is ever reintroduced.
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const preference = useAppStore((s) => s.settings.theme);
-  const scheme = useColorScheme();
-
-  const theme =
-    preference === 'system'
-      ? scheme === 'dark'
-        ? THEMES.court
-        : THEMES.chalk
-      : THEMES[preference];
-
-  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={chalkTheme}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): Theme {
