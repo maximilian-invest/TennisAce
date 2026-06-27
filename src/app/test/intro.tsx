@@ -22,11 +22,15 @@ export default function TestIntro() {
   const { colors } = useTheme();
   const start = useTestSession((s) => s.start);
   const profile = useAppStore((s) => s.profile);
+  const draft = useAppStore((s) => s.draft);
   const hasOnboarded = useAppStore((s) => s.hasOnboarded);
   const monthly = hasOnboarded;
 
-  const [sex, setSex] = useState<Sex | null>(monthly ? profile?.sex ?? null : null);
-  const [age, setAge] = useState(monthly && profile?.age ? String(profile.age) : '');
+  // Prefill from the profile (monthly retest) or the onboarding draft (first test).
+  const seedSex = monthly ? profile?.sex : draft.sex;
+  const seedAge = monthly ? profile?.age : draft.age;
+  const [sex, setSex] = useState<Sex | null>(seedSex ?? null);
+  const [age, setAge] = useState(seedAge ? String(seedAge) : '');
   const valid = !!sex && Number(age) > 0;
 
   return (

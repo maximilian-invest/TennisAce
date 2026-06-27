@@ -42,7 +42,7 @@ export default function Welcome() {
         <View style={styles.spacer} />
 
         <View style={styles.dots}>
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
             <View
               key={i}
               style={[

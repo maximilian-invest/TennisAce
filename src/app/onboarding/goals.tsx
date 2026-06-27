@@ -32,13 +32,14 @@ export default function Goals() {
   return (
     <StepScaffold
       step={1}
-      title="Was sind deine Ziele?"
-      subtitle="Wähle alles, was dich antreibt."
+      total={7}
+      title="Was willst du auf dem Platz erreichen?"
+      subtitle="Wähle alles, was dich antreibt – dein Hauptziel zuerst."
       ctaTitle="Weiter"
       ctaDisabled={selected.length === 0}
       onNext={() => {
         updateDraft({ goals: selected });
-        router.push('/onboarding/equipment');
+        router.push('/onboarding/profile');
       }}
     >
       <View style={styles.wrap}>

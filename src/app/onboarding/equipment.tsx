@@ -28,7 +28,8 @@ export default function Equipment() {
 
   return (
     <StepScaffold
-      step={2}
+      step={5}
+      total={7}
       title="Welches Equipment hast du?"
       subtitle="Wir passen jede Übung daran an."
       ctaTitle="Weiter"

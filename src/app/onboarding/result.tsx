@@ -66,6 +66,8 @@ export default function Result() {
       heightCm: draft.heightCm,
       weightKg: draft.weightKg,
       tennisSessionsPerWeek: draft.tennisSessionsPerWeek ?? 0,
+      tennisDays: draft.tennisDays,
+      trainingDaysPerWeek: draft.trainingDaysPerWeek,
       selfRating: draft.selfRating ?? 'L1',
       goals: draft.goals ?? [],
       language: lang,

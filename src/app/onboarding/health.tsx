@@ -25,7 +25,8 @@ export default function Health() {
 
   return (
     <StepScaffold
-      step={3}
+      step={6}
+      total={7}
       title="Kurzer Gesundheits-Check"
       subtitle="Damit wir Belastung und Prehab anpassen."
       ctaTitle="Weiter zum Leistungstest"
