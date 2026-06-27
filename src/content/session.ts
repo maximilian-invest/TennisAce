@@ -13,6 +13,10 @@ export interface SessionExercise {
   tempo: { de: string; en: string };
   formTip: { de: string; en: string };
   homeVariant: { de: string; en: string };
+  /** Why this movement matters for tennis (generated sessions). */
+  why?: { de: string; en: string };
+  /** Whether reps are a count or a hold in seconds. */
+  unit?: 'reps' | 's';
 }
 
 export const SESSION_TITLE = { de: 'Kraft Unterkörper + Core', en: 'Lower-body Strength + Core' };

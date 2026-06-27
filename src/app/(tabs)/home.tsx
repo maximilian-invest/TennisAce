@@ -176,6 +176,9 @@ export default function Home() {
             <Icon name="play" size={20} color={colors.accentText} />
             <Text style={[styles.playText, { color: colors.accentText }]}>{hero.cta}</Text>
           </Pressable>
+          <Pressable onPress={() => router.push({ pathname: '/workout', params: { short: '1' } })} style={styles.shortLink} hitSlop={6}>
+            <Text style={[styles.shortLinkText, { color: colors.heroText }]}>{de ? 'Wenig Zeit? Kurzversion ≈ 12 Min' : 'Short on time? ≈ 12-min version'}</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -304,6 +307,8 @@ const styles = StyleSheet.create({
   coachLine: { fontFamily: FONTS.body, fontSize: 12.5, lineHeight: 17, opacity: 0.8, marginTop: 11 },
   playBtn: { marginTop: 16, height: 54, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   playText: { fontFamily: FONTS.bodyBold, fontSize: 15.5 },
+  shortLink: { alignItems: 'center', marginTop: 11 },
+  shortLinkText: { fontFamily: FONTS.bodySemi, fontSize: 12.5, opacity: 0.72 },
 
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 24, marginTop: 24 },
   sectionTitle: { fontFamily: FONTS.display, fontSize: 17 },

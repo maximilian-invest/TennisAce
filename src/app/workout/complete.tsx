@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { useAppStore } from '@/store/appStore';
+import { coachCopy } from '@/services/personalization/tonality';
+import { useAppStore, useLang } from '@/store/appStore';
 import type { ThemeColors } from '@/theme/themes';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS } from '@/theme/tokens';
@@ -38,13 +39,41 @@ function Smiley({ mood, color }: { mood: Felt; color: string }) {
 
 export default function SessionComplete() {
   const { colors } = useTheme();
+  const lang = useLang();
+  const de = lang === 'de';
   const logWorkout = useAppStore((s) => s.logWorkout);
+  const workoutLog = useAppStore((s) => s.workoutLog);
+  const profile = useAppStore((s) => s.profile);
   const [felt, setFelt] = useState<Felt>('justRight');
 
   const finish = () => {
     logWorkout({ date: new Date().toISOString(), felt });
     router.replace('/home');
   };
+
+  // Stats including this just-finished session.
+  const mondayOf = (d: Date) => {
+    const m = new Date(d);
+    m.setHours(0, 0, 0, 0);
+    m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return m.getTime();
+  };
+  const now = new Date();
+  const total = workoutLog.length + 1;
+  const sessionsThisWeek = workoutLog.filter((e) => mondayOf(new Date(e.date)) === mondayOf(now)).length + 1;
+  const weekSet = new Set([...workoutLog.map((e) => mondayOf(new Date(e.date))), mondayOf(now)]);
+  let weekStreak = 0;
+  for (let c = mondayOf(now); weekSet.has(c); c -= 7 * 86400000) weekStreak += 1;
+
+  const praise = profile ? coachCopy(profile.age, lang).praise : de ? 'Stark gemacht!' : 'Well done!';
+
+  // Variable peak-end reward — rotates so it never feels the same (Hook model).
+  const rewards = [
+    { label: de ? 'WOCHENZIEL' : 'WEEKLY GOAL', value: de ? `${sessionsThisWeek}. Einheit diese Woche` : `Session ${sessionsThisWeek} this week` },
+    { label: de ? 'WOCHEN-STREAK' : 'WEEK STREAK', value: de ? `${weekStreak} Wochen am Stück` : `${weekStreak} weeks in a row` },
+    { label: de ? 'DRANGEBLIEBEN' : 'CONSISTENCY', value: de ? `${total} Einheiten insgesamt` : `${total} sessions total` },
+  ];
+  const reward = rewards[total % rewards.length];
 
   return (
     <Screen scroll contentStyle={styles.content}>
@@ -53,22 +82,20 @@ export default function SessionComplete() {
           <Icon name="check" size={46} color={colors.accentText} strokeWidth={2.6} />
         </View>
       </View>
-      <Text style={[styles.h, { color: colors.text }]}>Geschafft!</Text>
-      <Text variant="body" color={colors.dim} center style={styles.sub}>
-        Kraft + Core · Unterkörper abgeschlossen.
-      </Text>
+      <Text style={[styles.h, { color: colors.text }]}>{de ? 'Geschafft!' : 'Done!'}</Text>
+      <Text variant="body" color={colors.dim} center style={styles.sub}>{praise}</Text>
 
       <View style={styles.stats}>
-        <StatCard value="4 240" label="kg Volumen" colors={colors} />
-        <StatCard value="47:30" label="Dauer" colors={colors} />
-        <StatCard value="2" label="neue PRs" color={DOMAIN_COLORS.power} colors={colors} />
+        <StatCard value={String(sessionsThisWeek)} label={de ? 'Diese Woche' : 'This week'} colors={colors} />
+        <StatCard value={String(weekStreak)} label="Streak" colors={colors} />
+        <StatCard value={String(total)} label={de ? 'Gesamt' : 'Total'} color={DOMAIN_COLORS.power} colors={colors} />
       </View>
 
       <View style={[styles.pr, { backgroundColor: `${DOMAIN_COLORS.power}1F`, borderColor: `${DOMAIN_COLORS.power}4D` }]}>
         <Icon name="bolt" size={24} color={DOMAIN_COLORS.power} />
         <View>
-          <Text variant="label" color={colors.dim}>PERSÖNLICHER REKORD</Text>
-          <Text variant="bodySemi" color={colors.text}>Goblet Squat · 22,5 kg × 8</Text>
+          <Text variant="label" color={colors.dim}>{reward.label}</Text>
+          <Text variant="bodySemi" color={colors.text}>{reward.value}</Text>
         </View>
       </View>
 

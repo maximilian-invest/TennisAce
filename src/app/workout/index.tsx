@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
@@ -7,7 +7,10 @@ import Svg, { Circle } from 'react-native-svg';
 import { CourtLines } from '@/components/CourtLines';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
-import { SAMPLE_SESSION } from '@/content/session';
+import { SAMPLE_SESSION, SESSION_TITLE, type SessionExercise } from '@/content/session';
+import { generateWeekPlan } from '@/services/personalization/planGenerator';
+import { buildSession, swapExercise } from '@/services/sessionBuilder';
+import { useAppStore, useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { FONTS, RADII } from '@/theme/tokens';
 
@@ -18,10 +21,32 @@ const fmt = (n: number) => `${Math.floor(n / 60)}:${(n % 60).toString().padStart
 export default function WorkoutPlayer() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const lang = useLang();
+  const profile = useAppStore((s) => s.profile);
+  const health = useAppStore((s) => s.health);
+  const equipment = useAppStore((s) => s.equipment);
+  const levelState = useAppStore((s) => s.levelState);
+  const testHistory = useAppStore((s) => s.testHistory);
+  const params = useLocalSearchParams<{ short?: string }>();
+  const short = params.short === '1';
+  const mode = equipment?.mode ?? 'home';
+
+  // Build today's session from the engine (falls back to the sample pre-onboarding).
+  const built = useMemo(() => {
+    if (!profile) return { title: SESSION_TITLE.de, items: SAMPLE_SESSION };
+    const plan = generateWeekPlan({
+      age: profile.age, level: levelState?.currentLevel ?? 'L1', goals: profile.goals, health,
+      tennisDays: profile.tennisDays, trainingDaysPerWeek: profile.trainingDaysPerWeek,
+      weakest: testHistory[testHistory.length - 1]?.weakestDomain, lang,
+    });
+    const todayIdx = (new Date().getDay() + 6) % 7;
+    return buildSession({ session: plan.week[todayIdx], mode, age: profile.age, health, short });
+  }, [profile, health, levelState, testHistory, lang, mode, short]);
 
   const [exIdx, setExIdx] = useState(0);
-  const ex = SAMPLE_SESSION[exIdx];
-  const isPlank = ex.name.de === 'Plank';
+  const [items, setItems] = useState<SessionExercise[]>(built.items);
+  const ex = items[exIdx] ?? built.items[0];
+  const isHold = ex.unit === 's';
 
   const [setN, setSetN] = useState(1);
   const [reps, setReps] = useState(ex.reps);
@@ -30,10 +55,17 @@ export default function WorkoutPlayer() {
   const [view, setView] = useState<'side' | 'front'>('side');
   const [swapOpen, setSwapOpen] = useState(false);
   const [tipOpen, setTipOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
 
   const [resting, setResting] = useState(false);
   const [restLeft, setRestLeft] = useState(REST_TOTAL);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // reset when the built session changes (profile/short)
+  useEffect(() => {
+    setItems(built.items);
+    setExIdx(0);
+  }, [built]);
 
   // reset per exercise
   useEffect(() => {
@@ -43,9 +75,15 @@ export default function WorkoutPlayer() {
     setRpe(7);
     setSwapOpen(false);
     setTipOpen(false);
+    setWhyOpen(false);
   }, [exIdx, ex.reps, ex.weightKg]);
 
   useEffect(() => () => { if (restRef.current) clearInterval(restRef.current); }, []);
+
+  const replaceExercise = () => {
+    const cand = swapExercise(ex.domain, items.map((i) => i.name.de), mode, profile?.age ?? 30, health);
+    if (cand) setItems((arr) => arr.map((it, i) => (i === exIdx ? cand : it)));
+  };
 
   const startRest = () => {
     setRestLeft(REST_TOTAL);
@@ -67,14 +105,14 @@ export default function WorkoutPlayer() {
     if (setN < ex.sets) {
       setSetN((n) => n + 1);
       startRest();
-    } else if (exIdx < SAMPLE_SESSION.length - 1) {
+    } else if (exIdx < items.length - 1) {
       setExIdx((i) => i + 1);
     } else {
       router.replace('/workout/complete');
     }
   };
 
-  const sessionPct = Math.round((exIdx / SAMPLE_SESSION.length) * 100);
+  const sessionPct = Math.round((exIdx / items.length) * 100);
   const ringOffset = RING_CIRC * (1 - restLeft / REST_TOTAL);
 
   return (
@@ -109,7 +147,7 @@ export default function WorkoutPlayer() {
               <View style={[styles.setDot, { backgroundColor: colors.accent }]} />
               <Text style={[styles.setText, { color: colors.heroText }]}>Satz {setN} / {ex.sets}</Text>
             </View>
-            <Text style={[styles.repBig, { color: colors.heroText }]}>{reps} {isPlank ? 's' : 'Wdh'}</Text>
+            <Text style={[styles.repBig, { color: colors.heroText }]}>{reps} {isHold ? 's' : 'Wdh'}</Text>
           </View>
           <View style={styles.figure}>
             <Icon name="eqHome" size={92} color={colors.heroText} strokeWidth={1.3} />
@@ -119,18 +157,22 @@ export default function WorkoutPlayer() {
 
         {/* action chips */}
         <View style={styles.chips}>
-          <ActionChip icon="swap" label="Equipment" active={swapOpen} onPress={() => { setSwapOpen((o) => !o); setTipOpen(false); }} colors={colors} />
-          <ActionChip icon="bulb" label="Form-Tipp" active={tipOpen} onPress={() => { setTipOpen((o) => !o); setSwapOpen(false); }} colors={colors} />
-          <ActionChip icon="replace" label="Ersetzen" onPress={() => {}} colors={colors} />
+          <ActionChip icon="swap" label="Equipment" active={swapOpen} onPress={() => { setSwapOpen((o) => !o); setTipOpen(false); setWhyOpen(false); }} colors={colors} />
+          <ActionChip icon="bulb" label="Form-Tipp" active={tipOpen} onPress={() => { setTipOpen((o) => !o); setSwapOpen(false); setWhyOpen(false); }} colors={colors} />
+          <ActionChip icon="info" label="Warum" active={whyOpen} onPress={() => { setWhyOpen((o) => !o); setSwapOpen(false); setTipOpen(false); }} colors={colors} />
         </View>
-        {swapOpen ? (
-          <InfoBox tint={colors.accent} colors={colors} bold="Heim-Variante:" text={ex.homeVariant.de} />
-        ) : null}
+        {swapOpen ? <InfoBox tint={colors.accent} colors={colors} bold="Variante:" text={ex.homeVariant.de} /> : null}
         {tipOpen ? <InfoBox colors={colors} bold="Form-Tipp:" text={ex.formTip.de} /> : null}
+        {whyOpen && ex.why ? <InfoBox colors={colors} bold="Warum:" text={ex.why.de} /> : null}
+
+        <Pressable onPress={replaceExercise} style={styles.replaceLink}>
+          <Icon name="replace" size={15} color={colors.accentTx} strokeWidth={1.9} />
+          <Text variant="label" color={colors.accentTx}>Übung ersetzen</Text>
+        </Pressable>
 
         {/* logger */}
         <View style={styles.logger}>
-          <Stepper label={isPlank ? 'Sekunden' : 'Wiederh.'} value={reps} onDec={() => setReps((r) => Math.max(1, r - 1))} onInc={() => setReps((r) => r + 1)} colors={colors} />
+          <Stepper label={isHold ? 'Sekunden' : 'Wiederh.'} value={reps} onDec={() => setReps((r) => Math.max(1, r - 1))} onInc={() => setReps((r) => r + 1)} colors={colors} />
           <Stepper label="Gewicht" value={weight === 0 ? '–' : `${weight}`} onDec={() => setWeight((w) => Math.max(0, +(w - ex.weightStep).toFixed(1)))} onInc={() => setWeight((w) => +(w + ex.weightStep).toFixed(1))} colors={colors} />
         </View>
         <View style={styles.suggestion}>
@@ -181,7 +223,7 @@ export default function WorkoutPlayer() {
         {/* session progress */}
         <View style={styles.progress}>
           <View style={styles.progressHead}>
-            <Text variant="small" color={colors.dim}>Übung {exIdx + 1} / {SAMPLE_SESSION.length}</Text>
+            <Text variant="small" color={colors.dim}>Übung {exIdx + 1} / {items.length}</Text>
             <Text variant="small" color={colors.dim}>{sessionPct}%</Text>
           </View>
           <View style={[styles.progressTrack, { backgroundColor: colors.surface2 }]}>
@@ -192,7 +234,7 @@ export default function WorkoutPlayer() {
         {/* actions */}
         <Pressable onPress={finishSet} style={({ pressed }) => [styles.primary, { backgroundColor: colors.accent, transform: [{ translateY: pressed ? 1 : 0 }] }]}>
           <Icon name="check" size={18} color={colors.accentText} strokeWidth={2.4} />
-          <Text variant="bodySemi" color={colors.accentText}>{setN < ex.sets ? 'Satz abschließen' : exIdx < SAMPLE_SESSION.length - 1 ? 'Nächste Übung' : 'Einheit abschließen'}</Text>
+          <Text variant="bodySemi" color={colors.accentText}>{setN < ex.sets ? 'Satz abschließen' : exIdx < items.length - 1 ? 'Nächste Übung' : 'Einheit abschließen'}</Text>
         </Pressable>
         <Pressable onPress={() => router.replace('/workout/complete')} style={[styles.secondary, { borderColor: colors.line }]}>
           <Text variant="bodySemi" color={colors.text}>Einheit beenden</Text>
@@ -212,7 +254,7 @@ function RoundBtn({ onPress, icon, colors }: { onPress: () => void; icon: 'chevr
   );
 }
 
-function ActionChip({ icon, label, active, onPress, colors }: { icon: 'swap' | 'bulb' | 'replace'; label: string; active?: boolean; onPress: () => void } & C) {
+function ActionChip({ icon, label, active, onPress, colors }: { icon: 'swap' | 'bulb' | 'info'; label: string; active?: boolean; onPress: () => void } & C) {
   return (
     <Pressable onPress={onPress} style={[styles.chip, { backgroundColor: active ? colors.surface2 : colors.surface, borderColor: active ? colors.accent : colors.line }]}>
       <Icon name={icon} size={17} color={colors.text} strokeWidth={1.8} />
@@ -276,6 +318,7 @@ const styles = StyleSheet.create({
   info: { padding: 13, borderRadius: 13 },
   infoText: { lineHeight: 18 },
   infoBold: { fontFamily: FONTS.bodyBold },
+  replaceLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 4 },
 
   logger: { flexDirection: 'row', gap: 11 },
   stepper: { flex: 1, borderWidth: 1, borderRadius: 16, padding: 13, alignItems: 'center' },
