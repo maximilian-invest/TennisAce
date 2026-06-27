@@ -37,6 +37,7 @@ export default function TestResult() {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const addTestResult = useAppStore((s) => s.addTestResult);
   const setLevelState = useAppStore((s) => s.setLevelState);
+  const advanceBlock = useAppStore((s) => s.advanceBlock);
 
   const currentLevel = levelState?.currentLevel ?? result?.level ?? 'L1';
   const suggestChange = monthly && !!result && result.level !== currentLevel;
@@ -121,6 +122,7 @@ export default function TestResult() {
       periodizationPhase: levelState?.periodizationPhase ?? 'inseason',
       source: 'test',
     });
+    advanceBlock(); // a retest closes the current training block
     router.replace('/progress');
   };
 

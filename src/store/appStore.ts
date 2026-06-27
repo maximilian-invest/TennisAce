@@ -36,6 +36,9 @@ type AppState = {
   workoutLog: WorkoutLogEntry[];
   /** Premium entitlement — set by the purchase flow (RevenueCat later). */
   isPremium: boolean;
+  /** Training-block cycle (4–8 weeks with a theme) — drives the block retest. */
+  blockStartedAt: string | null;
+  blockIndex: number;
   settings: Settings;
   draft: OnboardingDraft;
 
@@ -51,6 +54,8 @@ type AppState = {
   logWorkout: (entry: WorkoutLogEntry) => void;
   toggleEquipmentItem: (item: EquipmentItem) => void;
   setPremium: (value: boolean) => void;
+  /** Close the current block and start the next (after a block retest). */
+  advanceBlock: () => void;
   /** Replace the local store from a remote snapshot (Supabase sync). */
   hydrateFromRemote: (snapshot: RemoteSnapshot) => void;
   setLanguage: (language: Lang) => void;
@@ -79,12 +84,14 @@ export const useAppStore = create<AppState>()(
       testHistory: [],
       workoutLog: [],
       isPremium: false,
+      blockStartedAt: null,
+      blockIndex: 0,
       settings: { theme: 'system', language: 'de' },
       draft: {},
 
       updateDraft: (patch) => set((s) => ({ draft: { ...s.draft, ...patch } })),
       completeOnboarding: ({ profile, equipment, health, levelState }) =>
-        set({ hasOnboarded: true, profile, equipment, health, levelState, draft: {} }),
+        set({ hasOnboarded: true, profile, equipment, health, levelState, draft: {}, blockStartedAt: new Date().toISOString(), blockIndex: 0 }),
       addTestResult: (result) =>
         set((s) => ({ testHistory: [...s.testHistory, result] })),
       setLevelState: (levelState) => set({ levelState }),
@@ -97,6 +104,7 @@ export const useAppStore = create<AppState>()(
           return { equipment: { ...base, items } };
         }),
       setPremium: (value) => set({ isPremium: value }),
+      advanceBlock: () => set((s) => ({ blockIndex: s.blockIndex + 1, blockStartedAt: new Date().toISOString() })),
       hydrateFromRemote: (snapshot) =>
         set({
           profile: snapshot.profile,
@@ -119,6 +127,8 @@ export const useAppStore = create<AppState>()(
           levelState: null,
           testHistory: [],
           workoutLog: [],
+          blockStartedAt: null,
+          blockIndex: 0,
           draft: {},
         }),
     }),
@@ -135,6 +145,8 @@ export const useAppStore = create<AppState>()(
         testHistory: s.testHistory,
         workoutLog: s.workoutLog,
         isPremium: s.isPremium,
+        blockStartedAt: s.blockStartedAt,
+        blockIndex: s.blockIndex,
         settings: s.settings,
         draft: s.draft,
       }),

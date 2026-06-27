@@ -92,6 +92,11 @@ export default function Home() {
   // First performance test is free; monthly retests are ACE Pro.
   const lockedTest = !isPremium && testHistory.length > 0;
 
+  // Forgiving comeback: after a gap, welcome back — never shame the lapse.
+  const lastWorkout = workoutLog.length ? workoutLog[workoutLog.length - 1].date : null;
+  const gapDays = lastWorkout ? Math.floor((now.getTime() - new Date(lastWorkout).getTime()) / 86400000) : 0;
+  const comeback = lastWorkout != null && gapDays >= 10;
+
   // Personalized "today" from the engine.
   const plan = profile
     ? generateWeekPlan({
@@ -181,6 +186,18 @@ export default function Home() {
           </Pressable>
         </View>
       </View>
+
+      {/* Forgiving comeback (after a gap) */}
+      {comeback ? (
+        <Pressable onPress={() => router.push({ pathname: '/workout', params: { short: '1' } })} style={[styles.secure, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+          <Icon name="bolt" size={20} color={colors.accentTx} strokeWidth={2.2} />
+          <View style={styles.flex}>
+            <Text variant="bodySemi" color={colors.text}>{de ? 'Willkommen zurück!' : 'Welcome back!'}</Text>
+            <Text variant="small" color={colors.dim}>{de ? 'Kein Stress – 10 Minuten heute halten dich im Rhythmus.' : 'No pressure – 10 minutes today keeps your rhythm.'}</Text>
+          </View>
+          <Icon name="chevronRight" size={20} color={colors.dim} />
+        </Pressable>
+      ) : null}
 
       {/* Secure-account nudge (guests with progress) */}
       {showSecure ? (

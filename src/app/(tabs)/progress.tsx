@@ -10,7 +10,9 @@ import { TEST_STATIONS } from '@/content/tests';
 import { DOMAIN_LABELS } from '@/content/reasoningDomains';
 import { LEVEL_NAMES, t } from '@/domain/catalog';
 import type { Domain, Level } from '@/domain/models';
+import { BLOCK_WEEKS, blockRetestDue, blockTheme, blockWeek } from '@/services/blocks';
 import { domainDeltas, isImproved, stationHigherIsBetter, trendForStation } from '@/services/testHistory';
+import { tennisTransfer } from '@/services/tennisTransfer';
 import { useAppStore, useLang } from '@/store/appStore';
 import { useTheme } from '@/theme/ThemeContext';
 import { DOMAIN_COLORS, FONTS, RADII } from '@/theme/tokens';
@@ -41,9 +43,14 @@ export default function ProgressTab() {
   const workoutLog = useAppStore((s) => s.workoutLog);
   const levelState = useAppStore((s) => s.levelState);
   const isPremium = useAppStore((s) => s.isPremium);
+  const blockStartedAt = useAppStore((s) => s.blockStartedAt);
+  const blockIndex = useAppStore((s) => s.blockIndex);
 
   const latest = testHistory[testHistory.length - 1];
   const baseline = testHistory.length > 1 ? testHistory[0] : undefined;
+  const transferLine = latest && baseline ? tennisTransfer(latest, baseline, lang) : null;
+  const week = blockWeek(blockStartedAt);
+  const retestDue = blockRetestDue(blockStartedAt);
 
   // Training streak & weekly compliance from the workout log.
   const now = new Date();
@@ -95,6 +102,35 @@ export default function ProgressTab() {
 
           {/* Score + level progress */}
           <LevelCard latest={latest} levelState={levelState} colors={colors} lang={lang} />
+
+          {/* Training block */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+            <View style={styles.radarHead}>
+              <Text variant="bodySemi" color={colors.text}>{lang === 'de' ? 'Block' : 'Block'} · {blockTheme(blockIndex, lang)}</Text>
+              <Text variant="small" color={colors.dim}>{lang === 'de' ? 'Woche' : 'Week'} {week}/{BLOCK_WEEKS}</Text>
+            </View>
+            <View style={[styles.blockTrack, { backgroundColor: colors.surface2 }]}>
+              <View style={[styles.blockFill, { backgroundColor: colors.accent, width: `${(week / BLOCK_WEEKS) * 100}%` }]} />
+            </View>
+            {retestDue ? (
+              <Pressable onPress={() => router.push(isPremium ? '/test/intro' : '/paywall')} style={({ pressed }) => [styles.blockCta, { backgroundColor: colors.accent, transform: [{ translateY: pressed ? 1 : 0 }] }]}>
+                <Icon name="check" size={16} color={colors.accentText} strokeWidth={2.4} />
+                <Text variant="label" color={colors.accentText}>{lang === 'de' ? 'Block abschließen · Retest' : 'Finish block · retest'}</Text>
+              </Pressable>
+            ) : (
+              <Text variant="small" color={colors.dim} style={styles.blockNote}>
+                {lang === 'de' ? `Noch ${BLOCK_WEEKS - week} Wochen bis zum Block-Retest.` : `${BLOCK_WEEKS - week} weeks to the block retest.`}
+              </Text>
+            )}
+          </View>
+
+          {/* Tennis-transfer mirror */}
+          {transferLine ? (
+            <View style={[styles.transfer, { backgroundColor: colors.heroBg }]}>
+              <Icon name="bolt" size={18} color={colors.accent} strokeWidth={2.2} />
+              <Text variant="small" color={colors.heroText} style={styles.transferText}>{transferLine}</Text>
+            </View>
+          ) : null}
 
           {/* Domain deltas since baseline */}
           {baseline ? (
@@ -288,4 +324,12 @@ const styles = StyleSheet.create({
   monthlyCta: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 16, borderRadius: 18, marginTop: 24 },
   monthlyCtaSub: { opacity: 0.78, marginTop: 1 },
   proPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+
+  blockTrack: { marginTop: 14, height: 8, borderRadius: 5, overflow: 'hidden' },
+  blockFill: { height: 8, borderRadius: 5 },
+  blockNote: { marginTop: 10 },
+  blockCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 13, marginTop: 13 },
+
+  transfer: { flexDirection: 'row', alignItems: 'flex-start', gap: 11, padding: 16, borderRadius: 18, marginTop: 16 },
+  transferText: { flex: 1, lineHeight: 18 },
 });
